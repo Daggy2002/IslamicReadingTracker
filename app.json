@@ -2,6 +2,7 @@
   "expo": {
     "name": "IslamicReadingTracker",
     "slug": "IslamicReadingTracker",
+    "scheme": "islamicreadingtracker",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -21,10 +22,22 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.daggy.IslamicReadingTracker"
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router"
+    ],
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "ebfe6b01-8e31-42a9-b8a9-9b5302e640d1"
+      }
     }
   }
 }
