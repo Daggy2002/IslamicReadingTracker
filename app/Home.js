@@ -94,7 +94,6 @@ export default function Home() {
         { name: "none", status: "none" },
         { name: "none", status: "none" },
         { name: "none", status: "none" },
-        { name: "none", status: "none" },
       ],
       title: titleInput,
       type: "Khatam",

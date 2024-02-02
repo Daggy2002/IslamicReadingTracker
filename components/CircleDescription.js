@@ -16,7 +16,7 @@ const AdditionalCirclesLegend = () => {
     { color: '#8EBBFF', description: 'assigned to you' },
     { color: '#2F3855', description: 'assigned to someone else' },
     { color: '#9FCC2E', description: 'complete' },
-    { color: '#F4F4FC', description: 'not assigned to anyone, free for taking' },
+    { color: '#F4F4FC', description: 'not assigned to anyone'},
   ];
 
   return (
@@ -43,9 +43,9 @@ const styles = StyleSheet.create({
     margin: 1,
   },
   description: {
-    fontSize: 14,
+    fontSize: 18,
     textAlign: 'center',
-    margin: 10,
+    margin: 5,
     fontWeight: 'bold',
     color: '#f4f4fc',
   },

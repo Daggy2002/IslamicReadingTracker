@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, Image} from "react-native";
 import { ProgressBar } from "react-native-paper";
 import {
   AlertNotificationRoot,
@@ -24,7 +24,6 @@ const NumericStepper = ({ data, code }) => {
   const [originalValue, setOriginalValue] = useState(data.data.current_amount);
   const [showConfirmButton, setShowConfirmButton] = useState(false);
   const [goalReached, setGoalReached] = useState(false);
-  const [confirmed, setConfirmed] = useState(false);
 
   const step = 50;
   const largeStep = 100;
@@ -33,9 +32,8 @@ const NumericStepper = ({ data, code }) => {
     // Update the state when the data prop changes
     setValue(data.data.current_amount);
     setOriginalValue(data.data.current_amount);
-    setConfirmed(false);
-    setGoalReached(false);
     setShowConfirmButton(false);
+    setGoalReached(data.data.current_amount >= data.data.goal);
   }, [data]);
 
   const increment = (isLargeStep = false) => {
@@ -53,8 +51,6 @@ const NumericStepper = ({ data, code }) => {
   const confirmChange = async () => {
     setOriginalValue(value);
     setShowConfirmButton(false);
-    setGoalReached(value >= data.data.goal);
-    setConfirmed(true);
 
     data.data.current_amount = value;
     // Get the reference to the 'Code1' document
@@ -66,7 +62,7 @@ const NumericStepper = ({ data, code }) => {
 
       // Update the data based on your requirements
       const updatedData = data;
-
+      setGoalReached(updatedData.data.current_amount >= updatedData.data.goal);
       // Update the document with the new data
       await updateDoc(codeDocRef, updatedData);
 
@@ -88,17 +84,21 @@ const NumericStepper = ({ data, code }) => {
   const cancelChange = () => {
     setValue(originalValue);
     setShowConfirmButton(false);
-    setGoalReached(false);
-    setConfirmed(false);
   };
 
   return (
     <AlertNotificationRoot>
       <View style={styles.mainContainer}>
-        {confirmed && goalReached ? (
-          <Text style={styles.completeMessage}>
-            The Tasbeeh Reading is complete, thanks for participating
-          </Text>
+        {goalReached ? (
+          <View>
+            <Text style={styles.completeMessage}>
+              The Tasbeeh Reading is complete, thanks for participating
+            </Text>
+            <Image
+              style={styles.image}
+              source={require("../assets/complete.png")}
+            />
+          </View>
         ) : (
           <>
             <Text style={styles.titleText}>{data.title}</Text>
@@ -241,6 +241,9 @@ const styles = StyleSheet.create({
   mainContainer: {
     margin: 20,
     alignContent: "center",
+  },
+  image: {
+    alignSelf: 'center',
   },
 });
 

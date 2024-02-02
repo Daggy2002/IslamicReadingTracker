@@ -109,14 +109,12 @@ export default function Tasbeeh() {
 
   return (
     <AlertNotificationRoot>
-      <ScrollView
-        style={{ flex: 1 }}
-        refreshControl={
-          <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
-        }
-      >
         {isDataRetrieved ? (
-          <>
+            <ScrollView
+              refreshControl={
+                <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
+              }
+            >
             <Stepper data={data} code={code} />
             <TouchableOpacity onPress={shareData} style={styles.shareButton}>
               <Text style={styles.shareButtonText}>Share Code</Text>
@@ -129,22 +127,22 @@ export default function Tasbeeh() {
                 <Text style={styles.deleteButtonText}>Delete Room</Text>
               </TouchableOpacity>
             ) : null}
-          </>
+          </ScrollView>
         ) : (
           <View style={styles.container}>
             <Loader />
           </View>
         )}
-      </ScrollView>
     </AlertNotificationRoot>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    justifyContent: "center",
+    flexGrow: 1,
+    backgroundColor: "#222b3d",
     alignItems: "center",
+    justifyContent: "center",
   },
   shareButton: {
     backgroundColor: "#8EBBFF",
@@ -153,7 +151,8 @@ const styles = StyleSheet.create({
     margin: 10,
   },
   shareButtonText: {
-    color: "#F4F4FC",
+    color: '#2e3855',
+    fontWeight: "bold",
     textAlign: "center",
   },
   deleteButton: {
@@ -163,7 +162,8 @@ const styles = StyleSheet.create({
     margin: 10,
   },
   deleteButtonText: {
-    color: "#F4F4FC",
+    color: '#2e3855',
+    fontWeight: "bold",
     textAlign: "center",
   },
 });

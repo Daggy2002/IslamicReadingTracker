@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Animated } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Animated, Image } from 'react-native';
 import { Button } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AlertNotificationRoot, Toast, Dialog, ALERT_TYPE } from 'react-native-alert-notification';
@@ -45,6 +45,12 @@ const OutlinedCircleWithNumber = ({ number, onPress, onLongPress, color }) => {
 const CirclesGrid = ({ data, username, code}) => {
   const [circleColors, setCircleColors] = useState(Array(30).fill('#f4f4fc'));
   const [hasChanges, setHasChanges] = useState(false);
+  const [allRead, setAllRead] = useState(false);
+
+  useEffect( () => {
+    //Check if all the circles are read
+    setAllRead(data.data.every(item => item.status === 'read'));
+  }, [data]);
 
   useEffect( () => {
     // Update circle colors based on data from prop
@@ -60,7 +66,7 @@ const CirclesGrid = ({ data, username, code}) => {
   const handlePress = (index) => {
     const color = circleColors[index];
     // Check if the color is clickable
-    if (color === '#f4f4fc' || color === '#9fcc2e' || color === '#8ebbff') {
+    if (color === '#f4f4fc' || color === '#9fcc2e' && data.creator === username || color === '#8ebbff') {
       setCircleColors((prevColors) => {
         const newColors = [...prevColors];
         newColors[index] = color === '#8ebbff' ? '#f4f4fc' : '#8ebbff';
@@ -79,9 +85,9 @@ const CirclesGrid = ({ data, username, code}) => {
   
   const handleLongPress = (index) => {
     const color = circleColors[index];
-  
+    console.log(data.data[index].name);
     // Check if the color is clickable
-    if (color === '#f4f4fc' || color === '#9fcc2e' || color === '#8ebbff') {
+    if (color === '#f4f4fc' || color === '#9fcc2e' && data.data[index].name === username || color === '#8ebbff') {
       setCircleColors((prevColors) => {
         const newColors = [...prevColors];
         newColors[index] = color === '#9fcc2e' ? '#f4f4fc' : '#9fcc2e';
@@ -143,7 +149,7 @@ const CirclesGrid = ({ data, username, code}) => {
   
       // Update the data based on your requirements
       const updatedData = data
-      
+      setAllRead(updatedData.data.every(item => item.status === 'read'));
       // Update the document with the new data
       await updateDoc(code1DocRef, updatedData);
   
@@ -161,14 +167,17 @@ const CirclesGrid = ({ data, username, code}) => {
     }
   };
 
-  const allCirclesGreen = circleColors.every((color) => color === '#9fcc2e');
+  console.log(allRead);
 
   return (
     <AlertNotificationRoot>
     <View>
       <Text style={styles.heading}>{data.title}</Text>
-      {allCirclesGreen ? (
+      {allRead ? (
+        <View>
         <Text style={styles.completeMessage}>The Khatam is complete, thanks for participating</Text>
+        <Image style = {styles.image} source={require('../assets/complete.png')} />
+        </View>
       ) : (
         <>
           <View style={styles.gridContainer}>
@@ -239,8 +248,8 @@ const styles = StyleSheet.create({
     padding: 2,
   },
   circle: {
-    width: 35,
-    height: 35,
+    width: 40,
+    height: 40,
     borderRadius: 25,
     justifyContent: 'center',
     alignItems: 'center',
@@ -254,7 +263,12 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   number: {
-    fontSize: 18,
+    fontSize: 22,
+  },
+  image: {
+    width: 300,
+    height: 300,
+    alignSelf: 'center',  
   },
 });
 
