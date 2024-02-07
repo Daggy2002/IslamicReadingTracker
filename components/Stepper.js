@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, Image} from "react-native";
-import { ProgressBar } from "react-native-paper";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Image,
+  Share,
+} from "react-native";
+import { ProgressBar, IconButton } from "react-native-paper";
 import {
   AlertNotificationRoot,
   Toast,
@@ -11,22 +18,70 @@ import {
   collection,
   doc,
   updateDoc,
-  getDocs,
   getDoc,
-  query,
-  where,
+  deleteDoc,
 } from "firebase/firestore/lite";
+import DropdownAlert, {
+  DropdownAlertData,
+  DropdownAlertType,
+} from "react-native-dropdownalert";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { router, useLocalSearchParams } from "expo-router";
+import Modal from "react-native-modal";
 
 import db from "../firebase";
 
-const NumericStepper = ({ data, code }) => {
+let alert = (DropdownAlertData) =>
+  new Promise() < DropdownAlertData > ((res) => res);
+
+const NumericStepper = ({ data, code, username }) => {
   const [value, setValue] = useState(data.data.current_amount);
   const [originalValue, setOriginalValue] = useState(data.data.current_amount);
   const [showConfirmButton, setShowConfirmButton] = useState(false);
   const [goalReached, setGoalReached] = useState(false);
+  const [isInfoVisible, setIsInfoVisible] = useState(false);
 
-  const step = 50;
+  const step = 10;
   const largeStep = 100;
+
+  const shareData = async () => {
+    try {
+      await Share.share({
+        message:
+          "Join the Khatam/Tasbeeh Reading using this code " +
+          JSON.stringify(code),
+      });
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+
+  const deleteRoomConfirmation = () => {
+    Dialog.show({
+      type: ALERT_TYPE.DANGER,
+      title: "Delete Room",
+      textBody: "Are you sure you want to delete this room?",
+      button: "Delete",
+      onPressButton: () => deleteRoom(),
+    });
+  };
+
+  const deleteRoom = async () => {
+    Dialog.hide();
+    try {
+      const codesCollection = collection(db, "Codes");
+      await deleteDoc(doc(codesCollection, code));
+
+      const codes = await AsyncStorage.getItem("codes");
+      const codesArray = JSON.parse(codes);
+      const index = codesArray.indexOf(code);
+      codesArray.splice(index, 1);
+      await AsyncStorage.setItem("codes", JSON.stringify(codesArray));
+      router.replace("/Home");
+    } catch (error) {
+      console.error("Error deleting room:", error);
+    }
+  };
 
   useEffect(() => {
     // Update the state when the data prop changes
@@ -53,7 +108,7 @@ const NumericStepper = ({ data, code }) => {
     setShowConfirmButton(false);
 
     data.data.current_amount = value;
-    // Get the reference to the 'Code1' document
+
     const codeDocRef = doc(db, "Codes", code);
 
     try {
@@ -66,10 +121,10 @@ const NumericStepper = ({ data, code }) => {
       // Update the document with the new data
       await updateDoc(codeDocRef, updatedData);
 
-      Toast.show({
-        type: ALERT_TYPE.SUCCESS,
-        title: "Selection saved successfully!",
-        autoClose: 2000,
+      const alertData = await alert({
+        type: DropdownAlertType.Success,
+        title: "Success",
+        message: "Selection saved successfully.",
       });
     } catch (error) {
       console.error("Error saving selection:", error);
@@ -86,78 +141,143 @@ const NumericStepper = ({ data, code }) => {
     setShowConfirmButton(false);
   };
 
+  const truncateTitle = () => {
+    if (data.title.length > 14) {
+      return data.title.substring(0, 14) + "...";
+    }
+    return data.title;
+  };
+
   return (
-    <AlertNotificationRoot>
-      <View style={styles.mainContainer}>
-        {goalReached ? (
-          <View>
-            <Text style={styles.completeMessage}>
-              The Tasbeeh Reading is complete, thanks for participating
-            </Text>
-            <Image
-              style={styles.image}
-              source={require("../assets/complete.png")}
+    <>
+      <Modal
+        isVisible={isInfoVisible}
+        onBackdropPress={() => setIsInfoVisible(false)}
+      >
+        <View style={styles.infoScreen}>
+          <Text style={styles.heading}>📊 Viewing Progress:</Text>
+          <Text style={styles.infoText}>
+            - The top section shows the goal and your current progress.
+          </Text>
+          <Text style={styles.infoText}>
+            - If the progress bar is filled, congratulations! You've reached the
+            goal.
+          </Text>
+
+          <Text style={styles.heading}>🔄 Adjusting Count:</Text>
+          <Text style={styles.infoText}>
+            - Use the "+" and "-" buttons to increase or decrease the count.
+          </Text>
+          <Text style={styles.infoText}>
+            - For larger changes, try the "++" and "--" buttons.
+          </Text>
+
+          <Text style={styles.heading}>✔ Confirm Changes:</Text>
+          <Text style={styles.infoText}>
+            - If you're satisfied with the count, press "Confirm" below the
+            buttons.
+          </Text>
+
+          <Text style={styles.heading}>📤 Sharing:</Text>
+          <Text style={styles.infoText}>
+            - Use the "Share" button to invite others using the given code.
+          </Text>
+
+          <Text style={styles.heading}>❌ Deleting Room (Creator Only):</Text>
+          <Text style={styles.infoText}>
+            - If you're the creator, press "Delete" to remove the room
+            (confirmation required).
+          </Text>
+
+        </View>
+      </Modal>
+      <DropdownAlert alert={(func) => (alert = func)} />
+      <View style={styles.headingContainer}>
+        <View>
+          <Text style={styles.titleText}>{truncateTitle()}</Text>
+        </View>
+        <View style={styles.buttonsContainer}>
+          <IconButton
+            icon="share-variant"
+            onPress={shareData}
+            style={styles.shareButton}
+          />
+
+          {username === data.creator && (
+            <IconButton
+              icon="delete"
+              onPress={deleteRoomConfirmation}
+              style={styles.deleteButton}
             />
+          )}
+          <IconButton
+            icon="information"
+            onPress={() => setIsInfoVisible(true)}
+            style={styles.infoButton}
+          />
+        </View>
+      </View>
+      {goalReached ? (
+        <View>
+          <Text style={styles.completeMessage}>
+            The Tasbeeh Reading is complete, Jazakallah Khair for participating
+          </Text>
+          <Image
+            style={styles.image}
+            source={require("../assets/complete.png")}
+          />
+        </View>
+      ) : (
+        <>
+          <Text style={styles.headingText}>Goal: {data.data.goal}</Text>
+          <Text variant="titleLarge" style={styles.subheading}>
+            {value}/{data.data.goal}
+          </Text>
+          <ProgressBar
+            progress={data.data.current_amount / data.data.goal}
+            color="#8ebbff"
+            style={styles.progressBar}
+          />
+          <View style={styles.container}>
+            <TouchableOpacity
+              onPress={() => decrement(true)}
+              style={styles.largeButton}
+            >
+              <Text style={styles.buttonText}>--</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => decrement()} style={styles.button}>
+              <Text style={styles.buttonText}>-</Text>
+            </TouchableOpacity>
+            <Text style={styles.value}>{value}</Text>
+            <TouchableOpacity onPress={() => increment()} style={styles.button}>
+              <Text style={styles.buttonText}>+</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => increment(true)}
+              style={styles.largeButton}
+            >
+              <Text style={styles.buttonText}>++</Text>
+            </TouchableOpacity>
           </View>
-        ) : (
-          <>
-            <Text style={styles.titleText}>{data.title}</Text>
-            <Text style={styles.headingText}>Goal: {data.data.goal}</Text>
-            <Text variant="titleLarge" style={styles.subheading}>
-              {value}/{data.data.goal}
-            </Text>
-            <ProgressBar
-              progress={value / data.data.goal}
-              color="#8ebbff"
-              style={styles.progressBar}
-            />
-            <View style={styles.container}>
+          {showConfirmButton && (
+            <View style={styles.confirmButtonContainer}>
               <TouchableOpacity
-                onPress={() => decrement(true)}
-                style={styles.largeButton}
+                onPress={confirmChange}
+                style={styles.confirmButton}
               >
-                <Text style={styles.buttonText}>--</Text>
+                <Text style={styles.buttonText}>Confirm</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                onPress={() => decrement()}
-                style={styles.button}
+                onPress={cancelChange}
+                style={styles.cancelButton}
               >
-                <Text style={styles.buttonText}>-</Text>
-              </TouchableOpacity>
-              <Text style={styles.value}>{value}</Text>
-              <TouchableOpacity
-                onPress={() => increment()}
-                style={styles.button}
-              >
-                <Text style={styles.buttonText}>+</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => increment(true)}
-                style={styles.largeButton}
-              >
-                <Text style={styles.buttonText}>++</Text>
+                <Text style={styles.buttonText}>Cancel</Text>
               </TouchableOpacity>
             </View>
-            {showConfirmButton && (
-              <View style={styles.confirmButtonContainer}>
-                <TouchableOpacity
-                  onPress={confirmChange}
-                  style={styles.confirmButton}
-                >
-                  <Text style={styles.buttonText}>Confirm</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={cancelChange}
-                  style={styles.cancelButton}
-                >
-                  <Text style={styles.buttonText}>Cancel</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-          </>
-        )}
-      </View>
-    </AlertNotificationRoot>
+          )}
+        </>
+      )}
+    </>
   );
 };
 
@@ -195,7 +315,6 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "bold",
     margin: 10,
-    textAlign: "center",
     color: "#c0c2ce",
   },
   headingText: {
@@ -243,7 +362,52 @@ const styles = StyleSheet.create({
     alignContent: "center",
   },
   image: {
-    alignSelf: 'center',
+    alignSelf: "center",
+  },
+  buttonsContainer: {
+    flexDirection: "row",
+  },
+  shareButton: {
+    backgroundColor: "#8EBBFF",
+    borderRadius: 5,
+  },
+  deleteButton: {
+    backgroundColor: "#DB504A",
+    borderRadius: 5,
+  },
+  infoButton: {
+    backgroundColor: "#f4f4fc",
+    borderRadius: 5,
+  },
+  headingContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 20,
+    marginBottom: 20,
+  },
+  infoScreen: {
+    backgroundColor: "#fff",
+    padding: 20,
+    borderRadius: 10,
+    width: "90%",
+    alignSelf: "center",
+    justifyContent: "center",
+  },
+  heading: {
+    fontSize: 20,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginBottom: 20,
+    color: "#333",
+  },
+  infoText: {
+    fontSize: 16,
+    marginBottom: 10,
+    color: "#555",
+  },
+  boldText: {
+    fontWeight: "bold",
+    color: "#333",
   },
 });
 

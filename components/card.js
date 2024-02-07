@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Text, Menu } from 'react-native-paper';
-import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import { Card, Text, Menu, IconButton } from 'react-native-paper';
+import { View, TouchableOpacity, StyleSheet, Share} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const CardComponent = ({ onClick, pressDelete, cardData }) => {
+const CardComponent = ({ onClick, pressDelete, cardData, codes }) => {
   const [visible, setVisible] = useState(false);
   const [activeCard, setActiveCard] = useState(null);
   const [codeData, setCodeData] = useState(cardData);
@@ -40,6 +40,18 @@ const CardComponent = ({ onClick, pressDelete, cardData }) => {
     }
   };
 
+  const shareData = async (index) => {
+    try {
+      await Share.share({
+        message:
+          "Join the Khatam/Tasbeeh Reading using this code " +
+          JSON.stringify(codes[index]),
+      });
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+
   return (
     <>
       {codeData && codeData.map((code, index) => (
@@ -53,11 +65,15 @@ const CardComponent = ({ onClick, pressDelete, cardData }) => {
                   visible={visible && activeCard === index}
                   onDismiss={closeMenu}
                   anchor={
-                    <TouchableOpacity onPress={() => openMenu(index)} style={styles.options}>
-                      <Text style={styles.cardTitle}>...</Text>
-                    </TouchableOpacity>
+                    <IconButton
+                      icon="dots-horizontal"
+                      iconColor='#f4f4fc'
+                      size={25}
+                      onPress={() => openMenu(index)}
+                    />
                   }>
-                  <Menu.Item onPress={() => pressDelete(index)} style={styles.deleteButton} title="Remove for me" />
+                  <Menu.Item onPress={() => pressDelete(index)} color="red" title="Remove for me" />
+                  <Menu.Item onPress={() => shareData(index)}  title="Share Code" />
                 </Menu>
               </View>
             </Card.Content>
@@ -69,12 +85,6 @@ const CardComponent = ({ onClick, pressDelete, cardData }) => {
 };
 
 const styles = StyleSheet.create({
-  deleteButton: {
-    backgroundColor: '#DB504A',
-    color: '#F4F4FC',
-    borderRadius: 5,
-    margin: -10,
-  },
   card: {
     margin: 10,
     borderRadius: 15,

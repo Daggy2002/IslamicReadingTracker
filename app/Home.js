@@ -22,12 +22,18 @@ import {
 } from "react-native-gesture-handler";
 import { Linking } from "react-native";
 import Loader from "giant.panda_react-native-three-dots-loader";
+import DropdownAlert, {
+  DropdownAlertData,
+  DropdownAlertType,
+} from 'react-native-dropdownalert';
+
 
 import CardComponent from "../components/card";
 import Add from "../components/Add";
-import ModalPopup from "../components/modal";
+import ModalPopup from "../components/MainMenu";
 import db from "../firebase";
 
+let alert = (DropdownAlertData) => new Promise<DropdownAlertData>(res => res);
 
 
 const generateRandomCode = () => {
@@ -56,6 +62,17 @@ export default function Home() {
   const [dataRetrieved, setDataRetrieved] = useState(false);
 
   const createKhatam = async (titleInput) => {
+
+    //Check if the title is empty
+    if (titleInput === "") {
+      const alertData = await alert({
+        type: DropdownAlertType.Warn,
+        title: 'Invalid Title',
+        message: 'Please enter a title',
+      });
+      return;
+    }
+
     const code = generateRandomCode();
 
     //Get the username from async storage
@@ -127,6 +144,26 @@ export default function Home() {
   };
 
   const createTasbeeh = async (titleInput, goal) => {
+    //Check if the goal is positive and an integer
+    if (goal <= 0 || !Number.isInteger(Number(goal))) {
+      const alertData = await alert({
+        type: DropdownAlertType.Warn,
+        title: 'Invalid Number',
+        message: 'Please enter a positive integer for the goal',
+      });
+      return;
+    }
+
+    //Check if the title is empty
+    if (titleInput === "") {
+      const alertData = await alert({
+        type: DropdownAlertType.Warn,
+        title: 'Invalid Title',
+        message: 'Please enter a title',
+      });
+      return;
+    }
+
     const code = generateRandomCode();
 
     //Get the username from async storage
@@ -310,26 +347,27 @@ export default function Home() {
 
   return (
     <>
-      <GestureHandlerRootView>
-        <TouchableOpacity onPress={handleDonationClick}>
+      
+      <GestureHandlerRootView><DropdownAlert alert={func => (alert = func)} />
           <Text style={styles.text}>
-            If you liked the app, consider leaving a donation
+            Banner Ad here
           </Text>
-        </TouchableOpacity>
       </GestureHandlerRootView>
       {dataRetrieved ? (
-        <PaperProvider>
+          <PaperProvider>
           <AlertNotificationRoot theme="dark">
             <ScrollView
               refreshControl={
                 <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
               }
             >
+              
               <CardComponent
                 onClick={onCardPress}
                 Title={"Quraan Khatam"}
                 pressDelete={pressDelete}
                 cardData={cardData}
+                codes={codes}
               />
             </ScrollView>
             <ModalPopup
@@ -340,7 +378,7 @@ export default function Home() {
               createTasbeeh={createTasbeeh}
             />
           </AlertNotificationRoot>
-        </PaperProvider>
+          </PaperProvider>
       ) : (
         <View style={styles.container}>
           <Loader />

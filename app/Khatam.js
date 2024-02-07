@@ -2,11 +2,10 @@ import React, { useEffect, useState } from "react";
 import {
   StyleSheet,
   Share,
-  TouchableOpacity,
-  Text,
   RefreshControl,
   ScrollView,
   View,
+  Modal,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -111,17 +110,6 @@ export default function Khatam() {
           }
         >
           <CirclesGrid data={data} username={username} code={code} />
-          <TouchableOpacity onPress={shareData} style={styles.shareButton}>
-            <Text style={styles.shareButtonText}>Share Code</Text>
-          </TouchableOpacity>
-          {username === data.creator ? (
-            <TouchableOpacity
-              style={styles.deleteButton}
-              onPress={deleteRoomConfirmation}
-            >
-              <Text style={styles.deleteButtonText}>Delete Room</Text>
-            </TouchableOpacity>
-          ) : null}
         </ScrollView>
       ) : (
         <View style={styles.container}>
@@ -138,26 +126,5 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  shareButton: {
-    backgroundColor: "#8EBBFF",
-    borderRadius: 5,
-    padding: 10,
-    margin: 10,
-  },
-  shareButtonText: {
-    color: "#2e3855",
-    textAlign: "center",
-    fontWeight: "bold",
-  },
-  deleteButton: {
-    backgroundColor: "#DB504A",
-    borderRadius: 5,
-    padding: 10,
-    margin: 10,
-  },
-  deleteButtonText: {
-    color: "#2e3855",
-    textAlign: "center",
-    fontWeight: "bold",
-  },
+
 });

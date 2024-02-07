@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from "react";
 import {
   StyleSheet,
-  TouchableOpacity,
-  Share,
   RefreshControl,
   ScrollView,
   View,
+  Share,
 } from "react-native";
-import { Text } from "react-native-paper";
+import { Text, IconButton } from "react-native-paper";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router, useLocalSearchParams } from "expo-router";
 import {
@@ -36,18 +35,6 @@ export default function Tasbeeh() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [username, setUsername] = useState("");
 
-  const shareData = async () => {
-    try {
-      await Share.share({
-        message:
-          "Join the Khatam/Tasbeeh Reading using this code " +
-          JSON.stringify(code),
-      });
-    } catch (error) {
-      alert(error.message);
-    }
-  };
-
   const getCodes = async () => {
     try {
       const codesCollection = collection(db, "Codes");
@@ -61,33 +48,6 @@ export default function Tasbeeh() {
       setIsDataRetrieved(true);
     } catch (error) {
       console.error("Error fetching data:", error);
-    }
-  };
-
-  const deleteRoomConfirmation = () => {
-    Dialog.show({
-      type: ALERT_TYPE.DANGER,
-      title: "Delete Room",
-      textBody: "Are you sure you want to delete this room?",
-      button: "Delete",
-      onPressButton: () => deleteRoom(),
-    });
-  };
-
-  const deleteRoom = async () => {
-    Dialog.hide();
-    try {
-      const codesCollection = collection(db, "Codes");
-      await deleteDoc(doc(codesCollection, code));
-
-      const codes = await AsyncStorage.getItem("codes");
-      const codesArray = JSON.parse(codes);
-      const index = codesArray.indexOf(code);
-      codesArray.splice(index, 1);
-      await AsyncStorage.setItem("codes", JSON.stringify(codesArray));
-      router.replace("/Home");
-    } catch (error) {
-      console.error("Error deleting room:", error);
     }
   };
 
@@ -109,30 +69,41 @@ export default function Tasbeeh() {
 
   return (
     <AlertNotificationRoot>
-        {isDataRetrieved ? (
-            <ScrollView
-              refreshControl={
-                <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
-              }
-            >
-            <Stepper data={data} code={code} />
-            <TouchableOpacity onPress={shareData} style={styles.shareButton}>
-              <Text style={styles.shareButtonText}>Share Code</Text>
-            </TouchableOpacity>
-            {username === data.creator ? (
-              <TouchableOpacity
-                style={styles.deleteButton}
-                onPress={deleteRoomConfirmation}
-              >
-                <Text style={styles.deleteButtonText}>Delete Room</Text>
-              </TouchableOpacity>
-            ) : null}
-          </ScrollView>
-        ) : (
-          <View style={styles.container}>
-            <Loader />
+      {isDataRetrieved ? (
+        <ScrollView
+          refreshControl={
+            <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
+          }
+        >
+          <Stepper data={data} code={code} username={username}/>
+
+          <View style={styles.tasbeehContainer}>
+            <View style={styles.tasbeehPair}>
+              <Text style={styles.tasbeehText}>Sub-ha-nal-lah</Text>
+              <Text style={styles.tasbeehText}>سُبْحَانَ ٱللَّٰهِ</Text>
+            </View>
+
+            <View style={styles.tasbeehPair}>
+              <Text style={styles.tasbeehText}>al-ham-du-lil-lah</Text>
+              <Text style={styles.tasbeehText}>ٱلْحَمْدُ لِلَّٰهِ</Text>
+            </View>
+
+            <View style={styles.tasbeehPair}>
+              <Text style={styles.tasbeehText}>Allah-hu-ak-bar</Text>
+              <Text style={styles.tasbeehText}>اَللّٰهُ أَكْبَرُ</Text>
+            </View>
+
+            <View style={styles.tasbeehPair}>
+              <Text style={styles.tasbeehText}>As-tag-fir-rul-lah</Text>
+              <Text style={styles.tasbeehText}>أَسْتَغْفِرُ اللّٰه</Text>
+            </View>
           </View>
-        )}
+        </ScrollView>
+      ) : (
+        <View style={styles.container}>
+          <Loader />
+        </View>
+      )}
     </AlertNotificationRoot>
   );
 }
@@ -144,26 +115,19 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  shareButton: {
-    backgroundColor: "#8EBBFF",
-    borderRadius: 5,
-    padding: 10,
-    margin: 10,
+  tasbeehContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-around",
+    marginVertical: 10,
   },
-  shareButtonText: {
-    color: '#2e3855',
-    fontWeight: "bold",
+  tasbeehPair: {
+    width: "45%",
+    marginVertical: 10,
+  },
+  tasbeehText: {
+    fontSize: 18,
     textAlign: "center",
-  },
-  deleteButton: {
-    backgroundColor: "#DB504A",
-    borderRadius: 5,
-    padding: 10,
-    margin: 10,
-  },
-  deleteButtonText: {
-    color: '#2e3855',
-    fontWeight: "bold",
-    textAlign: "center",
+    color: "#f4f4fc",
   },
 });

@@ -7,7 +7,7 @@ export default function CompleteOrMissing() {
     <PaperProvider>
       <ScrollView style={styles.container}>
         <Text style={styles.message}>
-          This Quraan Khatam or Tasbeeh Reading has been completed. Thank you for your participation!
+          This Quraan Khatam or Tasbeeh Reading has been completed. Jazakallah Khair for your participation!
         </Text>
         <Image style = {styles.image} source={require('../assets/complete.png')} />
       </ScrollView>
