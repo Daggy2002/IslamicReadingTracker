@@ -10,12 +10,13 @@ import {
 } from 'react-native';
 
 
-const ModalPopup = ({ visible, onClose, saveCode, createKhatam, createTasbeeh }) => {
+const ModalPopup = ({ visible, onClose, saveCode, createNewRoom }) => {
   const [createChosen, setCreateChosen] = useState(false);
   const [joinChosen, setJoinChosen] = useState(false);
   const [codeInput, setCodeInput] = useState('');
   const [khatamChosen, setKhatamChosen] = useState(false);
   const [tasbeehChosen, setTasbeehChosen] = useState(false);
+  const [QadhaSalaahChosen, setQadhaSalaahChosen] = useState(false);
   const [titleInput, setTitleInput] = useState('');
   const [goal, setGoal] = useState(0);  
 
@@ -24,6 +25,7 @@ const ModalPopup = ({ visible, onClose, saveCode, createKhatam, createTasbeeh })
     setJoinChosen(false);
     setKhatamChosen(false);
     setTasbeehChosen(false);
+    setQadhaSalaahChosen(false);
     setCodeInput('');
     setTitleInput('');
   };
@@ -43,6 +45,12 @@ const ModalPopup = ({ visible, onClose, saveCode, createKhatam, createTasbeeh })
     setKhatamChosen(true);
     setCreateChosen(false);
   }
+
+  qadhaSalaahOnClick = () => {
+    setQadhaSalaahChosen(true);                                                                   
+    setCreateChosen(false);
+  }
+
 
   return (
     <Modal
@@ -69,6 +77,12 @@ const ModalPopup = ({ visible, onClose, saveCode, createKhatam, createTasbeeh })
                   onPress={tasbeehOnClick}
                 >
                   <Text style={styles.buttonText}>Tasbeeh Reading</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.button}
+                  onPress={qadhaSalaahOnClick}
+                >
+                  <Text style={styles.buttonText}>Qadha Salaah Tracker</Text>
                 </TouchableOpacity>
               </View>
             ) : joinChosen ? (
@@ -99,7 +113,7 @@ const ModalPopup = ({ visible, onClose, saveCode, createKhatam, createTasbeeh })
                 />
                 <TouchableOpacity
                   style={styles.button}
-                  onPress={() => createKhatam(titleInput)}
+                  onPress={() => createNewRoom("Khatam",titleInput, 0)}
                 >
                 <Text style={styles.buttonText}>Submit</Text>
               </TouchableOpacity>
@@ -123,7 +137,25 @@ const ModalPopup = ({ visible, onClose, saveCode, createKhatam, createTasbeeh })
                 />
                 <TouchableOpacity
                   style={styles.button}
-                  onPress={() => createTasbeeh(titleInput, goal)}
+                  onPress={() => createNewRoom("Tasbeeh",titleInput, goal)}
+                >
+                  <Text style={styles.buttonText}>Submit</Text>
+                </TouchableOpacity>
+                
+              </View>
+            ) : QadhaSalaahChosen ? (
+              <View>
+                <Text style={styles.headingText}>Enter the details</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Enter the goal amount for the Qadha Salaah"
+                  onChangeText={(text) => setGoal(text)}
+                  placeholderTextColor={"#F4F4FC"}
+                  keyboardType="numeric"
+                />
+                <TouchableOpacity
+                  style={styles.button}
+                  onPress={() => createNewRoom("QadhaSalaah", "Qadha Salaah", goal)}
                 >
                   <Text style={styles.buttonText}>Submit</Text>
                 </TouchableOpacity>

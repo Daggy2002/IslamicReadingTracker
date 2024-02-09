@@ -4,25 +4,20 @@ import {
   RefreshControl,
   ScrollView,
   View,
-  Share,
 } from "react-native";
-import { Text, IconButton } from "react-native-paper";
+import { Text } from "react-native-paper";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { router, useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import {
   collection,
   getDocs,
   query,
   where,
-  deleteDoc,
-  doc,
 } from "firebase/firestore/lite";
 import Loader from "giant.panda_react-native-three-dots-loader";
 
 import {
   AlertNotificationRoot,
-  Dialog,
-  ALERT_TYPE,
 } from "react-native-alert-notification";
 
 import Stepper from "../components/Stepper";
@@ -59,7 +54,7 @@ export default function Tasbeeh() {
 
   useEffect(() => {
     getCodes();
-  }, []); // Empty dependency array to run only on mount
+  }, []);
 
   useEffect(() => {
     AsyncStorage.getItem("username").then((value) => {

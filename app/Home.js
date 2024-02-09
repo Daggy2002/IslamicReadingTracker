@@ -16,25 +16,26 @@ import {
   query,
   where,
 } from "firebase/firestore/lite";
-import {
-  GestureHandlerRootView,
-  TouchableOpacity,
-} from "react-native-gesture-handler";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Linking } from "react-native";
 import Loader from "giant.panda_react-native-three-dots-loader";
-import DropdownAlert, {
-  DropdownAlertData,
-  DropdownAlertType,
-} from 'react-native-dropdownalert';
-
+import DropdownAlert, { DropdownAlertType } from "react-native-dropdownalert";
+import {
+  BannerAd,
+  BannerAdSize,
+  TestIds,
+} from "react-native-google-mobile-ads";
 
 import CardComponent from "../components/card";
 import Add from "../components/Add";
 import ModalPopup from "../components/MainMenu";
 import db from "../firebase";
+import { AD_MOB_ID } from "@env";
 
-let alert = (DropdownAlertData) => new Promise<DropdownAlertData>(res => res);
+let alert = (DropdownAlertData) =>
+  new Promise() < DropdownAlertData > ((res) => res);
 
+const adUnitId = __DEV__ ? TestIds.ADAPTIVE_BANNER : AD_MOB_ID;
 
 const generateRandomCode = () => {
   const characters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -61,120 +62,97 @@ export default function Home() {
   const [cardData, setCardData] = useState([]);
   const [dataRetrieved, setDataRetrieved] = useState(false);
 
-  const createKhatam = async (titleInput) => {
+  const createNewRoom = async (type, titleInput, goal) => {
+    //Verify the title
+    if (type === "Khatam" || type === "Tasbeeh") {
+      if (titleInput === "") {
+        const alertData = await alert({
+          type: DropdownAlertType.Warn,
+          title: "Invalid Title",
+          message: "Please enter a title",
+        });
+        return;
+      }
+    }
 
-    //Check if the title is empty
-    if (titleInput === "") {
-      const alertData = await alert({
-        type: DropdownAlertType.Warn,
-        title: 'Invalid Title',
-        message: 'Please enter a title',
-      });
-      return;
+    //Verify the goal is valid
+    if (type === "Tasbeeh" || type === "QadhaSalaah") {
+      if (goal <= 0 || !Number.isInteger(Number(goal))) {
+        const alertData = await alert({
+          type: DropdownAlertType.Warn,
+          title: "Invalid Number",
+          message: "Please enter a positive integer for the goal",
+        });
+        return;
+      }
     }
 
     const code = generateRandomCode();
 
-    //Get the username from async storage
     const username = await AsyncStorage.getItem("username");
 
-    const data = {
-      creator: username,
-      data: [
-        { name: "none", status: "none" },
-        { name: "none", status: "none" },
-        { name: "none", status: "none" },
-        { name: "none", status: "none" },
-        { name: "none", status: "none" },
-        { name: "none", status: "none" },
-        { name: "none", status: "none" },
-        { name: "none", status: "none" },
-        { name: "none", status: "none" },
-        { name: "none", status: "none" },
-        { name: "none", status: "none" },
-        { name: "none", status: "none" },
-        { name: "none", status: "none" },
-        { name: "none", status: "none" },
-        { name: "none", status: "none" },
-        { name: "none", status: "none" },
-        { name: "none", status: "none" },
-        { name: "none", status: "none" },
-        { name: "none", status: "none" },
-        { name: "none", status: "none" },
-        { name: "none", status: "none" },
-        { name: "none", status: "none" },
-        { name: "none", status: "none" },
-        { name: "none", status: "none" },
-        { name: "none", status: "none" },
-        { name: "none", status: "none" },
-        { name: "none", status: "none" },
-        { name: "none", status: "none" },
-        { name: "none", status: "none" },
-        { name: "none", status: "none" },
-      ],
-      title: titleInput,
-      type: "Khatam",
-    };
-    try {
-      const codesCollection = collection(db, "Codes");
+    let data = {};
 
-      await setDoc(doc(codesCollection, code), data);
-    } catch (error) {
-      console.log(error);
+    switch (type) {
+      case "Khatam":
+        data = {
+          creator: username,
+          data: [
+            { name: "none", status: "none" },
+            { name: "none", status: "none" },
+            { name: "none", status: "none" },
+            { name: "none", status: "none" },
+            { name: "none", status: "none" },
+            { name: "none", status: "none" },
+            { name: "none", status: "none" },
+            { name: "none", status: "none" },
+            { name: "none", status: "none" },
+            { name: "none", status: "none" },
+            { name: "none", status: "none" },
+            { name: "none", status: "none" },
+            { name: "none", status: "none" },
+            { name: "none", status: "none" },
+            { name: "none", status: "none" },
+            { name: "none", status: "none" },
+            { name: "none", status: "none" },
+            { name: "none", status: "none" },
+            { name: "none", status: "none" },
+            { name: "none", status: "none" },
+            { name: "none", status: "none" },
+            { name: "none", status: "none" },
+            { name: "none", status: "none" },
+            { name: "none", status: "none" },
+            { name: "none", status: "none" },
+            { name: "none", status: "none" },
+            { name: "none", status: "none" },
+            { name: "none", status: "none" },
+            { name: "none", status: "none" },
+            { name: "none", status: "none" },
+          ],
+          title: titleInput,
+          type: "Khatam",
+        };
+        break;
+      case "Tasbeeh":
+        data = {
+          creator: username,
+          data: { current_amount: 0, goal: goal },
+          title: titleInput,
+          type: "Tasbeeh",
+        };
+        break;
+      case "QadhaSalaah":
+        data = {
+          creator: username,
+          data: {
+            current_amount: 0,
+            goal: goal,
+            salaahsRead: [false, false, false, false, false],
+          },
+          type: "QadhaSalaah",
+        };
+        break;
     }
-
-    const newCodes = [...codes, code];
-    setCodes(newCodes);
-    await AsyncStorage.setItem("codes", JSON.stringify(newCodes));
-    Toast.show({
-      type: ALERT_TYPE.SUCCESS,
-      title: "Code created successfully",
-    });
-
-    closeModal();
-    onRefresh();
-
-    //Give it a 2 second delay
-    setTimeout(() => {
-      router.push({
-        pathname: "/Khatam",
-        params: { code: code },
-      });
-    }, 2000);
-  };
-
-  const createTasbeeh = async (titleInput, goal) => {
-    //Check if the goal is positive and an integer
-    if (goal <= 0 || !Number.isInteger(Number(goal))) {
-      const alertData = await alert({
-        type: DropdownAlertType.Warn,
-        title: 'Invalid Number',
-        message: 'Please enter a positive integer for the goal',
-      });
-      return;
-    }
-
-    //Check if the title is empty
-    if (titleInput === "") {
-      const alertData = await alert({
-        type: DropdownAlertType.Warn,
-        title: 'Invalid Title',
-        message: 'Please enter a title',
-      });
-      return;
-    }
-
-    const code = generateRandomCode();
-
-    //Get the username from async storage
-    const username = await AsyncStorage.getItem("username");
-
-    const data = {
-      creator: username,
-      data: { current_amount: 0, goal: goal },
-      title: titleInput,
-      type: "Tasbeeh",
-    };
 
     try {
       const codesCollection = collection(db, "Codes");
@@ -198,7 +176,7 @@ export default function Home() {
     //Give it a 2 second delay
     setTimeout(() => {
       router.push({
-        pathname: "/Tasbeeh",
+        pathname: "/" + type,
         params: { code: code },
       });
     }, 2000);
@@ -221,7 +199,6 @@ export default function Home() {
       where("__name__", "==", codeInput)
     );
     const querySnapshot = await getDocs(codesQuery);
-
     if (querySnapshot.empty) {
       Toast.show({
         type: ALERT_TYPE.WARNING,
@@ -241,19 +218,12 @@ export default function Home() {
       });
       Toast.hide();
       onRefresh();
-      //Give it a 2 second delay
+      //Redirect
       setTimeout(() => {
-        if (data.type === "Khatam") {
-          router.push({
-            pathname: "/Khatam",
-            params: { code: codeInput },
-          });
-        } else {
-          router.push({
-            pathname: "/Tasbeeh",
-            params: { code: codeInput },
-          });
-        }
+        router.push({
+          pathname: "/" + data.type,
+          params: { code: codeInput },
+        });
       }, 2000);
     }
   };
@@ -278,7 +248,6 @@ export default function Home() {
       return;
     }
 
-    // Firestore query to get documents where the document ID is in the codes array
     const codesCollection = collection(db, "Codes");
     const codesQuery = query(
       codesCollection,
@@ -293,7 +262,6 @@ export default function Home() {
       if (doc) {
         matchedDocs.push(doc.data());
       } else {
-        // If no matching document found, push None
         matchedDocs.push("None");
       }
     });
@@ -303,14 +271,9 @@ export default function Home() {
   };
 
   const onCardPress = (index) => {
-    if (cardData[index].type === "Khatam") {
+    if (cardData[index].type) {
       router.push({
-        pathname: "/Khatam",
-        params: { code: codes[index] },
-      });
-    } else if (cardData[index].type === "Tasbeeh") {
-      router.push({
-        pathname: "/Tasbeeh",
+        pathname: "/" + cardData[index].type,
         params: { code: codes[index] },
       });
     } else {
@@ -339,29 +302,29 @@ export default function Home() {
     setModalToggle(false);
   };
 
-  const handleDonationClick = () => {
-    Linking.openURL(
-      "https://www.youtube.com/watch?v=dQw4w9WgXcQ&pp=ygUJcmNpayByb2xs"
-    );
-  };
-
   return (
     <>
-      
-      <GestureHandlerRootView><DropdownAlert alert={func => (alert = func)} />
-          <Text style={styles.text}>
-            Banner Ad here
-          </Text>
+      <GestureHandlerRootView>
+        <DropdownAlert alert={(func) => (alert = func)} />
+        <BannerAd
+          style={{ margin: 10 }}
+          unitId={adUnitId}
+          size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
+          requestOptions={{
+            networkExtras: {
+              collapsible: "bottom",
+            },
+          }}
+        />
       </GestureHandlerRootView>
       {dataRetrieved ? (
-          <PaperProvider>
+        <PaperProvider>
           <AlertNotificationRoot theme="dark">
             <ScrollView
               refreshControl={
                 <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
               }
             >
-              
               <CardComponent
                 onClick={onCardPress}
                 Title={"Quraan Khatam"}
@@ -374,11 +337,10 @@ export default function Home() {
               visible={modalToggle}
               onClose={closeModal}
               saveCode={addCode}
-              createKhatam={createKhatam}
-              createTasbeeh={createTasbeeh}
+              createNewRoom={createNewRoom}
             />
           </AlertNotificationRoot>
-          </PaperProvider>
+        </PaperProvider>
       ) : (
         <View style={styles.container}>
           <Loader />

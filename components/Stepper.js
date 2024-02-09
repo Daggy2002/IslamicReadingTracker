@@ -9,7 +9,6 @@ import {
 } from "react-native";
 import { ProgressBar, IconButton } from "react-native-paper";
 import {
-  AlertNotificationRoot,
   Toast,
   Dialog,
   ALERT_TYPE,
@@ -22,11 +21,10 @@ import {
   deleteDoc,
 } from "firebase/firestore/lite";
 import DropdownAlert, {
-  DropdownAlertData,
   DropdownAlertType,
 } from "react-native-dropdownalert";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { router, useLocalSearchParams } from "expo-router";
+import { router } from "expo-router";
 import Modal from "react-native-modal";
 
 import db from "../firebase";

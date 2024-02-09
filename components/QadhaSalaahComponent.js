@@ -1,8 +1,7 @@
 // Give me the basic layout of a component
-import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Share } from "react-native";
-import BouncyCheckbox from "react-native-bouncy-checkbox";
-import { ProgressBar, IconButton } from "react-native-paper";
+import React, { useState } from "react";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { ProgressBar, IconButton, Checkbox } from "react-native-paper";
 import {
   collection,
   doc,
@@ -11,39 +10,28 @@ import {
   deleteDoc,
 } from "firebase/firestore/lite";
 import DropdownAlert, {
-  DropdownAlertData,
   DropdownAlertType,
 } from "react-native-dropdownalert";
-import ConfettiCannon from 'react-native-confetti-cannon';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { router } from "expo-router";
+import {
+  AlertNotificationRoot,
+  Dialog,
+  ALERT_TYPE,
+} from "react-native-alert-notification";
+import Modal from "react-native-modal";
 
 import db from "../firebase";
 
 let alert = (DropdownAlertData) =>
   new Promise() < DropdownAlertData > ((res) => res);
 
-const QadhaSalaahComponent = ({ data, username, code }) => {
+const QadhaSalaahComponent = ({ data, code }) => {
   const salaahNames = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"];
   const [isRead, setIsRead] = useState(data.data.salaahsRead);
   const [showSaveChanges, setShowSaveChanges] = useState(false);
   const [allRead, setAllRead] = useState(false);
-
-  const truncateTitle = () => {
-    if (data.title.length > 14) {
-      return data.title.substring(0, 14) + "...";
-    }
-    return data.title;
-  };
-  const shareData = async () => {
-    try {
-      await Share.share({
-        message:
-          "Join the Khatam/Tasbeeh Reading using this code " +
-          JSON.stringify(code),
-      });
-    } catch (error) {
-      alert(error.message);
-    }
-  };
+  const [isInfoVisible, setIsInfoVisible] = useState(false);
 
   const deleteRoomConfirmation = () => {
     Dialog.show({
@@ -73,25 +61,20 @@ const QadhaSalaahComponent = ({ data, username, code }) => {
   };
 
   const saveChanges = async () => {
-    console.log(isRead);
-    for (let i = 0; i < isRead.length; i++) {
-      if (!isRead[i]) {
-        console.log(isRead[i]);
-        setAllRead(false);
-        break;
-      }else{
-        setAllRead(true);
-      }
-    }
-    if (allRead) {
-      data.data.current_amount += 1;
-
-      //Change all the stuff in isRead to false
-      let newIsRead = [false, false, false, false, false];
-      setIsRead(newIsRead);
-    }
     setShowSaveChanges(false);
-    data.data.salaahsRead = isRead;
+
+    if (isRead.every((val) => val === true)) {
+      setIsRead([false, false, false, false, false]);
+      data.data.current_amount = data.data.current_amount + 1;
+      setAllRead(true);
+      //After 2 seconds set allRead to false
+      setTimeout(() => {
+        setAllRead(false);
+      }, 2000);
+      data.data.salaahsRead = [false, false, false, false, false];
+    } else {
+      data.data.salaahsRead = isRead;
+    }
 
     const codeDocRef = doc(db, "Codes", code);
 
@@ -113,69 +96,100 @@ const QadhaSalaahComponent = ({ data, username, code }) => {
     } catch (error) {
       console.error("Error saving selection:", error);
     }
-    setAllRead(false);
+  };
+
+  const handleCheckBoxChange = (index) => {
+    // Create a new array with the updated isRead value for the clicked index
+    const updatedIsRead = [...isRead];
+    updatedIsRead[index] = !updatedIsRead[index];
+    setIsRead(updatedIsRead);
+    setShowSaveChanges(true);
   };
 
   return (
     <>
-      <DropdownAlert alert={(func) => (alert = func)} />
-      <View style={styles.headingContainer}>
-        <View>
-          <Text style={styles.titleText}>{truncateTitle()}</Text>
-        </View>
-        <View style={styles.buttonsContainer}>
-          <IconButton
-            icon="share-variant"
-            onPress={shareData}
-            style={styles.shareButton}
-          />
+      <AlertNotificationRoot>
+        <Modal
+          isVisible={isInfoVisible}
+          onBackdropPress={() => setIsInfoVisible(false)}
+        >
+          <View style={styles.infoScreen}>
+            <Text style={styles.heading}>📌 How to Use:</Text>
 
-          {username === data.creator && (
+            <Text style={styles.infoText}>
+              1. <Text style={styles.boldText}>Checking Salaahs:</Text> Mark the
+              salaahs (prayers) you've read by tapping on them. They will show a
+              checkmark when selected.
+            </Text>
+
+            <Text style={styles.infoText}>
+              2. <Text style={styles.boldText}>Counting Completed Days:</Text>{" "}
+              When you finish marking all salaahs, it counts as completing one
+              day. Your 'Days Read' count goes up by 1, and the salaahs are
+              reset for the next day.
+            </Text>
+
+            <Text style={styles.infoText}>
+              3. <Text style={styles.boldText}>Deleting a Room:</Text> If you
+              want to remove the room, press the 'Delete' button. A confirmation
+              will pop up, and if you're sure, press 'Delete' again.
+            </Text>
+          </View>
+        </Modal>
+        <DropdownAlert alert={(func) => (alert = func)} />
+        <View style={styles.headingContainer}>
+          <View>
+            <Text style={styles.titleText}>Qadha Salaah Tracker</Text>
+          </View>
+          <View style={styles.buttonsContainer}>
             <IconButton
               icon="delete"
               onPress={deleteRoomConfirmation}
               style={styles.deleteButton}
             />
-          )}
-          <IconButton
-            icon="information"
-            onPress={() => setIsInfoVisible(true)}
-            style={styles.infoButton}
-          />
-        </View>
-      </View>
-      <Text style={styles.subheading}>Qadha Salaahs Read: {data.data.current_amount} / {data.data.goal}</Text>
-      <ProgressBar
-        progress={data.data.current_amount / data.data.goal}
-        color={"#8EBBFF"}
-        style={styles.progressBar}
-      />
 
-      {(allRead && <ConfettiCannon count={200} origin={{x: -10, y: 0}} fadeOut="true"/>)}
-      
-      {isRead.map((isChecked, index) => (
-        <BouncyCheckbox
-          style={styles.checkBoxes}
-          key={index}
-          size={25}
-          text={salaahNames[index]}
-          isChecked={isChecked}
-          onPress={() => {
-            const updatedIsRead = [...isRead];
-            updatedIsRead[index] = !isChecked;
-            setIsRead(updatedIsRead);
-            setShowSaveChanges(true);
-          }}
+            <IconButton
+              icon="information"
+              onPress={() => setIsInfoVisible(true)}
+              style={styles.infoButton}
+            />
+          </View>
+        </View>
+        <Text style={styles.subheading}>
+          Qadha Salaahs Read: {data.data.current_amount} / {data.data.goal}
+        </Text>
+        <ProgressBar
+          progress={data.data.current_amount / data.data.goal}
+          color={"#8EBBFF"}
+          style={styles.progressBar}
         />
-      ))}
-      {showSaveChanges && (
-        <TouchableOpacity
-          onPress={saveChanges}
-          style={styles.saveChangesButton}
-        >
-          <Text style={styles.buttonText}>Save Changes</Text>
-        </TouchableOpacity>
-      )}
+
+        {salaahNames.map((salaah, index) => (
+          <View key={index} style={styles.salaahContainer}>
+            <Checkbox
+              status={isRead[index] ? "checked" : "unchecked"}
+              onPress={() => handleCheckBoxChange(index)}
+              style={styles.checkBox}
+              color="#8EBBFF"
+            />
+            <Text style={styles.salaahName}>{salaah}</Text>
+          </View>
+        ))}
+        {allRead && (
+          <Text style={styles.completion}>
+            You've read one day of Qadha Salaah
+          </Text>
+        )}
+
+        {showSaveChanges && (
+          <TouchableOpacity
+            onPress={saveChanges}
+            style={styles.saveChangesButton}
+          >
+            <Text style={styles.buttonText}>Save Changes</Text>
+          </TouchableOpacity>
+        )}
+      </AlertNotificationRoot>
     </>
   );
 };
@@ -214,9 +228,6 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
   },
-  checkBoxes: {
-    margin: 10,
-  },
   buttonsContainer: {
     flexDirection: "row",
   },
@@ -231,6 +242,49 @@ const styles = StyleSheet.create({
   infoButton: {
     backgroundColor: "#f4f4fc",
     borderRadius: 5,
+  },
+  salaahContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  salaahName: {
+    fontSize: 18,
+    color: "#c0c2ce",
+    marginRight: 10,
+  },
+  checkBox: {
+    margin: 5,
+    padding: 10,
+  },
+  completion: {
+    textAlign: "center",
+    color: "#8EBBFF",
+    fontSize: 18,
+    margin: 10,
+  },
+  infoScreen: {
+    backgroundColor: "#fff",
+    padding: 20,
+    borderRadius: 10,
+    width: "90%",
+    alignSelf: "center",
+    justifyContent: "center",
+  },
+  heading: {
+    fontSize: 20,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginBottom: 20,
+    color: "#333",
+  },
+  infoText: {
+    fontSize: 16,
+    marginBottom: 10,
+    color: "#555",
+  },
+  boldText: {
+    fontWeight: "bold",
+    color: "#333",
   },
 });
 

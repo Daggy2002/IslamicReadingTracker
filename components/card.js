@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Text, Menu, IconButton } from 'react-native-paper';
 import { View, TouchableOpacity, StyleSheet, Share} from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const CardComponent = ({ onClick, pressDelete, cardData, codes }) => {
   const [visible, setVisible] = useState(false);
@@ -11,14 +10,6 @@ const CardComponent = ({ onClick, pressDelete, cardData, codes }) => {
   useEffect(() => {
     setCodeData(cardData);
   }, [cardData]);
-
-  const imageArray = [
-    'https://images.unsplash.com/photo-1512632578888-169bbbc64f33?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-    'https://images.unsplash.com/photo-1563300365-9c77e472e7a5?q=80&w=1770&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-    'https://images.unsplash.com/photo-1608366723754-b1ce9fedb1f6?q=80&w=1770&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-    'https://images.unsplash.com/photo-1566941902337-b5b60fbc3314?q=80&w=1932&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-    'https://images.unsplash.com/photo-1551041776-b00e405980f8?q=80&w=1770&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
-  ];
 
   const openMenu = (index) => {
     setVisible(true);
@@ -51,6 +42,15 @@ const CardComponent = ({ onClick, pressDelete, cardData, codes }) => {
       alert(error.message);
     }
   };
+  const getTitle = (index) => {
+    if(cardData[index].title){
+      return cardData[index].title
+    }else if(cardData[index].type === "QadhaSalaah"){
+      return "Qadha Salaah"
+    }else{
+      return "Not Found"
+    }
+  }
 
   return (
     <>
@@ -59,7 +59,7 @@ const CardComponent = ({ onClick, pressDelete, cardData, codes }) => {
           <Card style={styles.card}>
             <Card.Cover style={getStyle(index)} />
             <Card.Content style={styles.cardContent}>
-              <Text style={styles.cardTitle}>{cardData[index].title || "Not Found"}</Text>
+              <Text style={styles.cardTitle}>{getTitle(index)}</Text>
               <View style={styles.optionsContainer}>
                 <Menu
                   visible={visible && activeCard === index}

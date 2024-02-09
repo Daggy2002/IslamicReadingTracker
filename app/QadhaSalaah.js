@@ -1,59 +1,69 @@
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
-import { useEffect } from "react";
+import { View, StyleSheet, ScrollView, RefreshControl} from "react-native";
+import { useEffect, useState } from "react";
 import {
   collection,
   getDocs,
   query,
   where,
-  deleteDoc,
-  doc,
 } from "firebase/firestore/lite";
+import { useLocalSearchParams } from "expo-router";
+import Loader from "giant.panda_react-native-three-dots-loader";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import QadhaSalaahComponent from "../components/QadhaSalaahComponent";
 import db from "../firebase";
 
-const getCodes = async () => {
-  const codesCollection = collection(db, "Codes");
-  const codesQuery = query(
-    codesCollection,
-    where("__name__", "==", "S3RP148Z")
-  );
-  const querySnapshot = await getDocs(codesQuery);
-
-  const doc = querySnapshot.docs.find((snapshot) => snapshot.id === "S3RP148Z");
-  if (doc) {
-  }
-};
-
-const data = {
-  creator: "Tester001",
-  data: {
-    current_amount: 270,
-    goal: "1000",
-    salaahsRead: [true, true, false, true, true],
-  },
-  title: "New reading ",
-  type: "QadhaSalaah",
-};
-
 export default function QadhaSalaah() {
+  const [data, setData] = useState([]);
+  const { code } = useLocalSearchParams();
+  const [isDataRetrieved, setIsDataRetrieved] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const getCodes = async () => {
+    const codesCollection = collection(db, "Codes");
+    const codesQuery = query(codesCollection, where("__name__", "==", code));
+    const querySnapshot = await getDocs(codesQuery);
+
+    const doc = querySnapshot.docs.find((snapshot) => snapshot.id === code);
+    if (doc) {
+      setData(doc.data());
+    }
+    setIsDataRetrieved(true);
+    setIsRefreshing(false); 
+  };
+
   useEffect(() => {
     getCodes();
   }, []);
+
+  const onRefresh = async () => {
+    setIsRefreshing(true);
+    await getCodes();
+  };
+
   return (
     <>
-      <QadhaSalaahComponent code="S3RP148Z" data={data} />
+      {isDataRetrieved ? (
+        <ScrollView
+          refreshControl={
+            <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
+          }
+        >
+          <QadhaSalaahComponent data={data} code={code} />
+        </ScrollView>
+      ) : (
+        <View style={styles.container}>
+          <Loader />
+        </View>
+      )}
     </>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "#ccc",
-  },
-  text: {
-    fontSize: 18,
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });

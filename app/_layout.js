@@ -5,6 +5,8 @@ export default function Layout(){
         <Stack screenOptions={{
             contentStyle: { backgroundColor: "#24293d" },
             headerStyle: { backgroundColor: "#24293d" },
+            statusBarHidden: true,
+            statusBarTranslucent: true,
         }}>
             <Stack.Screen name="Home" options={{headerShown: false}}/>
             <Stack.Screen name="Khatam" options={{headerShown: false}}/>

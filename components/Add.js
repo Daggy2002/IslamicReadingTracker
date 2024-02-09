@@ -16,7 +16,6 @@ const style = {
 const Add = ({onclick}) => (
   <IconButton
     icon="plus"
-    size={20}
     color='#f4f4fc'
     style={style} 
     onPress={onclick}
