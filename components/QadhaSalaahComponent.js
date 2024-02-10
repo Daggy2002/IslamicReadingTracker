@@ -145,13 +145,13 @@ const QadhaSalaahComponent = ({ data, code }) => {
             <IconButton
               icon="delete"
               onPress={deleteRoomConfirmation}
-              style={styles.deleteButton}
+              iconColor="#DB504A"
             />
 
             <IconButton
               icon="information"
               onPress={() => setIsInfoVisible(true)}
-              style={styles.infoButton}
+              iconColor="#f4f4fc"
             />
           </View>
         </View>
@@ -231,18 +231,6 @@ const styles = StyleSheet.create({
   buttonsContainer: {
     flexDirection: "row",
   },
-  shareButton: {
-    backgroundColor: "#8EBBFF",
-    borderRadius: 5,
-  },
-  deleteButton: {
-    backgroundColor: "#DB504A",
-    borderRadius: 5,
-  },
-  infoButton: {
-    backgroundColor: "#f4f4fc",
-    borderRadius: 5,
-  },
   salaahContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -263,7 +251,7 @@ const styles = StyleSheet.create({
     margin: 10,
   },
   infoScreen: {
-    backgroundColor: "#fff",
+    backgroundColor: "#222b3d",
     padding: 20,
     borderRadius: 10,
     width: "90%",
@@ -275,16 +263,16 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     textAlign: "center",
     marginBottom: 20,
-    color: "#333",
+    color: "#f4f4fc",
   },
   infoText: {
     fontSize: 16,
     marginBottom: 10,
-    color: "#555",
+    color: "#f4f4fc",
   },
   boldText: {
     fontWeight: "bold",
-    color: "#333",
+    color: "#f4f4fc",
   },
 });
 

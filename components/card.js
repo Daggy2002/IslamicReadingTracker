@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Text, Menu, IconButton } from 'react-native-paper';
-import { View, TouchableOpacity, StyleSheet, Share} from 'react-native';
+import { Card, Text, IconButton } from 'react-native-paper';
+import { View, TouchableOpacity, StyleSheet, Share } from 'react-native';
 
 const CardComponent = ({ onClick, pressDelete, cardData, codes }) => {
-  const [visible, setVisible] = useState(false);
+  const [visible, setVisible] = useState(null);
   const [activeCard, setActiveCard] = useState(null);
   const [codeData, setCodeData] = useState(cardData);
 
@@ -11,21 +11,25 @@ const CardComponent = ({ onClick, pressDelete, cardData, codes }) => {
     setCodeData(cardData);
   }, [cardData]);
 
-  const openMenu = (index) => {
-    setVisible(true);
-    setActiveCard(index);
-  };
-
-  const closeMenu = () => {
-    setVisible(false);
+  const toggleMenu = (index) => {
+    if (visible === index) {
+      setVisible(null);
+      setActiveCard(null);
+    } else {
+      setVisible(index);
+      setActiveCard(index);
+    }
   };
 
   const getStyle = (index) => {
+    console.log(cardData[index].type);
     switch (cardData[index].type) {
       case 'Khatam':
         return styles.cardCoverKhatam;
       case 'Tasbeeh':
         return styles.cardCoverTasbeeh;
+      case 'QadhaSalaah':
+        return styles.cardCoverNotFound;
       default:
         return styles.cardCoverNotFound;
     }
@@ -42,44 +46,73 @@ const CardComponent = ({ onClick, pressDelete, cardData, codes }) => {
       alert(error.message);
     }
   };
+
   const getTitle = (index) => {
-    if(cardData[index].title){
-      return cardData[index].title
-    }else if(cardData[index].type === "QadhaSalaah"){
-      return "Qadha Salaah"
-    }else{
-      return "Not Found"
+    if (cardData[index].title) {
+      return truncateTitle(index);
+    } else if (cardData[index].type === 'QadhaSalaah') {
+      return 'Qadha Salaah';
+    } else {
+      return 'Not Found';
     }
-  }
+  };
+
+  const truncateTitle = (index) => {
+    if (cardData[index].title.length > 14) {
+      return cardData[index].title.substring(0, 14) + "...";
+    }
+    return cardData[index].title;
+  };
 
   return (
     <>
-      {codeData && codeData.map((code, index) => (
-        <TouchableOpacity key={index} onPress={() => onClick(index)}>
-          <Card style={styles.card}>
-            <Card.Cover style={getStyle(index)} />
-            <Card.Content style={styles.cardContent}>
-              <Text style={styles.cardTitle}>{getTitle(index)}</Text>
-              <View style={styles.optionsContainer}>
-                <Menu
-                  visible={visible && activeCard === index}
-                  onDismiss={closeMenu}
-                  anchor={
+      {codeData &&
+        codeData.map((code, index) => (
+          <TouchableOpacity key={index} onPress={() => onClick(index)}>
+            <Card style={styles.card}>
+              <Card.Content style={styles.cardContent}>
+                <Text style={styles.cardTitle}>{getTitle(index)}</Text>
+                <View style={styles.optionsContainer}>
+                  {visible === index ? (
+                    <View style={styles.iconContainer}>
+
+                      <IconButton
+                        icon="delete"
+                        iconColor="#db504a"
+                        size={25}
+                        onPress={() => {
+                          pressDelete(index);
+                          toggleMenu(index);
+                        }}
+                      />
+                      <IconButton
+                        icon="share-variant"
+                        iconColor="#00BCD4"
+                        size={25}
+                        onPress={() => {
+                          shareData(index);
+                        }}
+                      />
+                      <IconButton
+                        icon="dots-horizontal"
+                        iconColor="#f4f4fc"
+                        size={25}
+                        onPress={() => toggleMenu(index)}
+                      />
+                    </View>
+                  ) : (
                     <IconButton
                       icon="dots-horizontal"
                       iconColor='#f4f4fc'
                       size={25}
-                      onPress={() => openMenu(index)}
+                      onPress={() => toggleMenu(index)}
                     />
-                  }>
-                  <Menu.Item onPress={() => pressDelete(index)} color="red" title="Remove for me" />
-                  <Menu.Item onPress={() => shareData(index)}  title="Share Code" />
-                </Menu>
-              </View>
-            </Card.Content>
-          </Card>
-        </TouchableOpacity>
-      ))}
+                  )}
+                </View>
+              </Card.Content>
+            </Card>
+          </TouchableOpacity>
+        ))}
     </>
   );
 };
@@ -125,6 +158,10 @@ const styles = StyleSheet.create({
   options: {
     margin: 10,
     alignSelf: 'flex-end',
+  },
+  iconContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
 });
 

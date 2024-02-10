@@ -140,8 +140,8 @@ const NumericStepper = ({ data, code, username }) => {
   };
 
   const truncateTitle = () => {
-    if (data.title.length > 14) {
-      return data.title.substring(0, 14) + "...";
+    if (data.title.length > 12) {
+      return data.title.substring(0, 12) + "...";
     }
     return data.title;
   };
@@ -198,20 +198,20 @@ const NumericStepper = ({ data, code, username }) => {
           <IconButton
             icon="share-variant"
             onPress={shareData}
-            style={styles.shareButton}
+            iconColor="#8EBBFF"
           />
 
           {username === data.creator && (
             <IconButton
               icon="delete"
               onPress={deleteRoomConfirmation}
-              style={styles.deleteButton}
+              iconColor="#DB504A"
             />
           )}
           <IconButton
             icon="information"
             onPress={() => setIsInfoVisible(true)}
-            style={styles.infoButton}
+            iconColor="#f4f4fc"
           />
         </View>
       </View>
@@ -384,7 +384,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   infoScreen: {
-    backgroundColor: "#fff",
+    backgroundColor: "#222b3d",
     padding: 20,
     borderRadius: 10,
     width: "90%",
@@ -396,16 +396,16 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     textAlign: "center",
     marginBottom: 20,
-    color: "#333",
+    color: "#f4f4fc",
   },
   infoText: {
     fontSize: 16,
     marginBottom: 10,
-    color: "#555",
+    color: "#f4f4fc",
   },
   boldText: {
     fontWeight: "bold",
-    color: "#333",
+    color: "#f4f4fc",
   },
 });
 
