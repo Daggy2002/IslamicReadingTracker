@@ -15,7 +15,7 @@ const AdditionalCirclesLegend = () => {
   const additionalCircles = [
     { color: '#8EBBFF', description: 'assigned to you' },
     { color: '#2F3855', description: 'assigned to someone else' },
-    { color: '#9FCC2E', description: 'complete' },
+    { color: '#9FCC2E', description: 'completed' },
     { color: '#F4F4FC', description: 'not assigned to anyone'},
   ];
 

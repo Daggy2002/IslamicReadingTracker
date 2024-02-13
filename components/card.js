@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, Text, IconButton } from 'react-native-paper';
 import { View, TouchableOpacity, StyleSheet, Share } from 'react-native';
+import * as Animatable from 'react-native-animatable';
 
 const CardComponent = ({ onClick, pressDelete, cardData, codes }) => {
   const [visible, setVisible] = useState(null);
   const [activeCard, setActiveCard] = useState(null);
   const [codeData, setCodeData] = useState(cardData);
+  const animationRef = useRef(null);
 
   useEffect(() => {
     setCodeData(cardData);
@@ -15,23 +17,15 @@ const CardComponent = ({ onClick, pressDelete, cardData, codes }) => {
     if (visible === index) {
       setVisible(null);
       setActiveCard(null);
+      if (animationRef.current) {
+        animationRef.current.fadeOutRight(200);
+      }
     } else {
       setVisible(index);
       setActiveCard(index);
-    }
-  };
-
-  const getStyle = (index) => {
-    console.log(cardData[index].type);
-    switch (cardData[index].type) {
-      case 'Khatam':
-        return styles.cardCoverKhatam;
-      case 'Tasbeeh':
-        return styles.cardCoverTasbeeh;
-      case 'QadhaSalaah':
-        return styles.cardCoverNotFound;
-      default:
-        return styles.cardCoverNotFound;
+      if (animationRef.current) {
+        animationRef.current.fadeInRight(200);
+      }
     }
   };
 
@@ -74,8 +68,12 @@ const CardComponent = ({ onClick, pressDelete, cardData, codes }) => {
                 <Text style={styles.cardTitle}>{getTitle(index)}</Text>
                 <View style={styles.optionsContainer}>
                   {visible === index ? (
-                    <View style={styles.iconContainer}>
-
+                    <Animatable.View
+                      ref={animationRef}
+                      style={styles.iconContainer}
+                      animation="fadeInRight"
+                      duration={200}
+                    >
                       <IconButton
                         icon="delete"
                         iconColor="#db504a"
@@ -99,7 +97,7 @@ const CardComponent = ({ onClick, pressDelete, cardData, codes }) => {
                         size={25}
                         onPress={() => toggleMenu(index)}
                       />
-                    </View>
+                    </Animatable.View>
                   ) : (
                     <IconButton
                       icon="dots-horizontal"

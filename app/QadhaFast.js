@@ -20,7 +20,7 @@ import {
   AlertNotificationRoot,
 } from "react-native-alert-notification";
 
-import Stepper from "../components/StepperTasbeeh";
+import Stepper from "../components/StepperFast";
 import db from "../firebase";
 
 export default function Tasbeeh() {
@@ -70,7 +70,7 @@ export default function Tasbeeh() {
             <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
           }
         >
-          <Stepper data={data} code={code} username={username}/>
+          <Stepper data={data} code={code}/>
         </ScrollView>
       ) : (
         <View style={styles.container}>

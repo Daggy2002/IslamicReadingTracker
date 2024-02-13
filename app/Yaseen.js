@@ -20,7 +20,7 @@ import {
   AlertNotificationRoot,
 } from "react-native-alert-notification";
 
-import Stepper from "../components/StepperTasbeeh";
+import Stepper from "../components/StepperYaseen";
 import db from "../firebase";
 
 export default function Tasbeeh() {

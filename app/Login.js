@@ -4,6 +4,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { GestureHandlerRootView, TouchableOpacity } from 'react-native-gesture-handler';
 import { AlertNotificationRoot, Toast, ALERT_TYPE } from 'react-native-alert-notification';
 import { router } from 'expo-router';
+import DropdownAlert, { DropdownAlertType } from "react-native-dropdownalert";
+
+let alert = (DropdownAlertData) =>
+  new Promise() < DropdownAlertData > ((res) => res);
 
 
 export default function Login() {
@@ -13,9 +17,9 @@ export default function Login() {
   const saveData = async () => {
   
     if (username === '') {
-      Toast.show({
-        type: ALERT_TYPE.ERROR,
-        title: 'Please enter a username',
+      const alertData = await alert({
+        type: DropdownAlertType.Warn,
+        message: "Please enter a username",
       });
       return;
     }
@@ -25,9 +29,9 @@ export default function Login() {
       await AsyncStorage.setItem('username', username);
   
       // Show success toast after AsyncStorage save
-      Toast.show({
-        type: ALERT_TYPE.SUCCESS,
-        title: 'Username saved successfully',
+      const alertData = await alert({
+        type: DropdownAlertType.Success,
+        message: "Username saved successfully!",
       });
   
       // Wait for the toast to show
@@ -37,17 +41,14 @@ export default function Login() {
       router.push('/Home');
     } catch (error) {
       console.error('Error saving data:', error);
-      Toast.show({
-        type: ALERT_TYPE.ERROR,
-        title: 'Error saving username',
-      });
     }
   };
   
 
 
   return (
-    <AlertNotificationRoot theme='dark'>
+    <>
+      <DropdownAlert ref={(ref) => (alert = ref)} />
       <GestureHandlerRootView style={{ flex: 1 }}> 
       <View style={styles.mainContainer}> 
         <Text style = {styles.headingText}>Please enter your username</Text>
@@ -65,7 +66,7 @@ export default function Login() {
         </TouchableOpacity>
       </View>
       </GestureHandlerRootView>
-    </AlertNotificationRoot>
+    </>
   );
 }
 

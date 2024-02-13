@@ -2,12 +2,14 @@ import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
-  Modal,
   TouchableOpacity,
   TouchableWithoutFeedback,
   TextInput,
   StyleSheet,
+  BackHandler,
 } from "react-native";
+import Modal from "react-native-modal";
+import { IconButton } from "react-native-paper";
 
 const ModalPopup = ({ visible, onClose, saveCode, createNewRoom }) => {
   const [createChosen, setCreateChosen] = useState(false);
@@ -15,7 +17,9 @@ const ModalPopup = ({ visible, onClose, saveCode, createNewRoom }) => {
   const [codeInput, setCodeInput] = useState("");
   const [khatamChosen, setKhatamChosen] = useState(false);
   const [tasbeehChosen, setTasbeehChosen] = useState(false);
+  const [yaseenChosen, setYaseenChosen] = useState(false);
   const [QadhaSalaahChosen, setQadhaSalaahChosen] = useState(false);
+  const [QadhaFastChosen, setQadhaFastChosen] = useState(false);
   const [titleInput, setTitleInput] = useState("");
   const [goal, setGoal] = useState(0);
 
@@ -24,7 +28,9 @@ const ModalPopup = ({ visible, onClose, saveCode, createNewRoom }) => {
     setJoinChosen(false);
     setKhatamChosen(false);
     setTasbeehChosen(false);
+    setYaseenChosen(false);
     setQadhaSalaahChosen(false);
+    setQadhaFastChosen(false);
     setCodeInput("");
     setTitleInput("");
   };
@@ -45,9 +51,41 @@ const ModalPopup = ({ visible, onClose, saveCode, createNewRoom }) => {
     setCreateChosen(false);
   };
 
+  qadhaFastOnClick = () => {
+    setQadhaFastChosen(true);
+    setCreateChosen(false);
+  };
+
   qadhaSalaahOnClick = () => {
     setQadhaSalaahChosen(true);
     setCreateChosen(false);
+  };
+
+  yaseenOnClick = () => {
+    setYaseenChosen(true);
+    setCreateChosen(false);
+  };
+
+  onBackClick = () => {
+    if (createChosen || joinChosen) {
+      setCreateChosen(false);
+      setJoinChosen(false);
+    } else if (
+      khatamChosen ||
+      tasbeehChosen ||
+      QadhaSalaahChosen ||
+      QadhaFastChosen ||
+      yaseenChosen
+    ) {
+      setCreateChosen(true);
+      setKhatamChosen(false);
+      setTasbeehChosen(false);
+      setQadhaFastChosen(false);
+      setQadhaSalaahChosen(false);
+      setYaseenChosen(false);
+    } else {
+      onClose();
+    }
   };
 
   return (
@@ -57,15 +95,33 @@ const ModalPopup = ({ visible, onClose, saveCode, createNewRoom }) => {
           <View style={styles.modalView}>
             {createChosen ? (
               <View>
-                <Text style={styles.headingText}>Please select the type of room you would like to create</Text>
+                <Text style={styles.headingText}>
+                  Select the type of room you would like to create
+                </Text>
+
                 <TouchableOpacity style={styles.button} onPress={khatamOnClick}>
-                  <Text style={styles.buttonText}>Quraan Khatam</Text>
+                  <Text style={styles.buttonText}>Quraan Khatam Tracker</Text>
                 </TouchableOpacity>
+
                 <TouchableOpacity
                   style={styles.button}
                   onPress={tasbeehOnClick}
                 >
-                  <Text style={styles.buttonText}>Tasbeeh/Surah/Qadha fast Tracker</Text>
+                  <Text style={styles.buttonText}>Tasbeeh Tracker</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.button}
+                  onPress={yaseenOnClick}
+                >
+                  <Text style={styles.buttonText}>Yaseen Tracker</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.button}
+                  onPress={qadhaFastOnClick}
+                >
+                  <Text style={styles.buttonText}>Qadha Fast Tracker</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.button}
@@ -76,7 +132,9 @@ const ModalPopup = ({ visible, onClose, saveCode, createNewRoom }) => {
               </View>
             ) : joinChosen ? (
               <View>
-                <Text style={styles.headingText}>Please enter the code that was shared with you</Text>
+                <Text style={styles.headingText}>
+                  Please enter the code that was shared with you
+                </Text>
                 <TextInput
                   style={styles.input}
                   placeholder="Code"
@@ -93,7 +151,9 @@ const ModalPopup = ({ visible, onClose, saveCode, createNewRoom }) => {
               </View>
             ) : khatamChosen ? (
               <View>
-                <Text style={styles.headingText}>Please enter who or what you are making a khatam for</Text>
+                <Text style={styles.headingText}>
+                  Enter a title for the Quraan Khatam
+                </Text>
                 <TextInput
                   style={styles.input}
                   placeholder="Title"
@@ -110,7 +170,9 @@ const ModalPopup = ({ visible, onClose, saveCode, createNewRoom }) => {
               </View>
             ) : tasbeehChosen ? (
               <View>
-                <Text style={styles.headingText}>Please enter the subject of the room as well as the goal you would like to reach</Text>
+                <Text style={styles.headingText}>
+                  Enter a title for the room along with an attainable goal
+                </Text>
                 <TextInput
                   style={styles.input}
                   placeholder="Title"
@@ -132,9 +194,51 @@ const ModalPopup = ({ visible, onClose, saveCode, createNewRoom }) => {
                   <Text style={styles.buttonText}>Submit</Text>
                 </TouchableOpacity>
               </View>
+            ) : yaseenChosen ? (
+              <View>
+                <Text style={styles.headingText}>
+                  Enter the amount of Yaseen that you would like to read
+                </Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Goal"
+                  onChangeText={(text) => setGoal(text)}
+                  placeholderTextColor={"#F4F4FC"}
+                  keyboardType="numeric"
+                />
+                <TouchableOpacity
+                  style={styles.button}
+                  onPress={() => createNewRoom("Yaseen", "Yaseen", goal)}
+                >
+                  <Text style={styles.buttonText}>Submit</Text>
+                </TouchableOpacity>
+              </View>
+            ) : QadhaFastChosen ? (
+              <View>
+                <Text style={styles.headingText}>
+                  Enter the amount of days of Qadha Fast that you need to
+                  account for
+                </Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Goal"
+                  onChangeText={(text) => setGoal(text)}
+                  placeholderTextColor={"#F4F4FC"}
+                  keyboardType="numeric"
+                />
+                <TouchableOpacity
+                  style={styles.button}
+                  onPress={() => createNewRoom("QadhaFast", "Qadha Fast", goal)}
+                >
+                  <Text style={styles.buttonText}>Submit</Text>
+                </TouchableOpacity>
+              </View>
             ) : QadhaSalaahChosen ? (
               <View>
-                <Text style={styles.headingText}>Please enter the amount of days of Qadha Salaah that you have to make up for</Text>
+                <Text style={styles.headingText}>
+                  Enter the amount of days of Qadha Salaah that you need to
+                  account for
+                </Text>
                 <TextInput
                   style={styles.input}
                   placeholder="Goal"
@@ -154,32 +258,39 @@ const ModalPopup = ({ visible, onClose, saveCode, createNewRoom }) => {
             ) : (
               <>
                 <Text style={styles.headingText}>
-                  Please select if you would like to create a new room, or join
-                  an existing one if you have a code.
+                  Would you like to create a new room, or join an existing one?
                 </Text>
                 <TouchableOpacity
                   style={styles.button}
                   onPress={() => setCreateChosen(true)}
                 >
-                  <Text style={styles.buttonText}> Create a new room</Text>
+                  <Text style={styles.buttonText}>Create a new room</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.button}
                   onPress={() => setJoinChosen(true)}
                 >
-                  <Text style={styles.buttonText}>Join an existing one</Text>
+                  <Text style={styles.buttonText}>Join an existing room</Text>
                 </TouchableOpacity>
               </>
             )}
-            <TouchableOpacity
-              style={styles.closeButton}
-              onPress={() => {
-                resetStates();
-                onClose();
-              }}
-            >
-              <Text style={styles.buttonText}>Close</Text>
-            </TouchableOpacity>
+            <View style={styles.navigationButtons}>
+              <IconButton
+                icon="arrow-left"
+                onPress={onBackClick}
+                iconColor="#f4f4fc"
+              />
+
+              <TouchableOpacity
+                style={styles.closeButton}
+                onPress={() => {
+                  resetStates();
+                  onClose();
+                }}
+              >
+                <Text style={styles.buttonText}>Close</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </TouchableWithoutFeedback>
@@ -243,6 +354,10 @@ const styles = StyleSheet.create({
   closeButtonText: {
     color: "#F4F4FC",
     fontSize: 16,
+  },
+  navigationButtons: {
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
 });
 

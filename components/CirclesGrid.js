@@ -14,6 +14,7 @@ import {
   Toast,
   Dialog,
   ALERT_TYPE,
+  AlertNotificationRoot,
 } from "react-native-alert-notification";
 import {
   collection,
@@ -22,11 +23,10 @@ import {
   getDoc,
   deleteDoc,
 } from "firebase/firestore/lite";
-import DropdownAlert, {
-  DropdownAlertType,
-} from "react-native-dropdownalert";
+import DropdownAlert, { DropdownAlertType } from "react-native-dropdownalert";
 import { router } from "expo-router";
 import Modal from "react-native-modal";
+import Icon from "react-native-vector-icons/FontAwesome";
 
 import db from "../firebase";
 import AdditionalCirclesLegend from "./CircleDescription";
@@ -76,7 +76,6 @@ const CirclesGrid = ({ data, username, code }) => {
   const [hasChanges, setHasChanges] = useState(false);
   const [allRead, setAllRead] = useState(false);
   const [isInfoVisible, setIsInfoVisible] = useState(false);
-
 
   const shareData = async () => {
     try {
@@ -135,10 +134,11 @@ const CirclesGrid = ({ data, username, code }) => {
 
   const handlePress = (index) => {
     const color = circleColors[index];
+    console.log(data.data[index].name);
     // Check if the color is clickable
     if (
       color === "#f4f4fc" ||
-      (color === "#9fcc2e" && data.creator === username) ||
+      (color === "#9fcc2e" && data.data[index].name === username) ||
       color === "#8ebbff"
     ) {
       setCircleColors((prevColors) => {
@@ -149,15 +149,16 @@ const CirclesGrid = ({ data, username, code }) => {
         return newColors;
       });
     } else {
-      Toast.show({
-        type: ALERT_TYPE.WARNING,
-        title: "This para has already been taken by someone else",
+      const alertData = alert({
+        type: DropdownAlertType.Warn,
+        message: "This para has already been taken by someone else",
       });
     }
   };
 
   const handleLongPress = (index) => {
     const color = circleColors[index];
+    console.log(data.data[index].name);
     // Check if the color is clickable
     if (
       color === "#f4f4fc" ||
@@ -172,11 +173,12 @@ const CirclesGrid = ({ data, username, code }) => {
         return newColors;
       });
     } else {
-      Toast.show({
-        type: ALERT_TYPE.WARNING,
-        title: "This para has already been taken by someone else",
+      const alertData = alert({
+        type: DropdownAlertType.Warn,
+        message: "This para has already been taken by someone else",
       });
     }
+    console.log("New name " + data.data[index].name);
   };
 
   const updateData = (index, newColors) => {
@@ -227,13 +229,12 @@ const CirclesGrid = ({ data, username, code }) => {
 
       const alertData = await alert({
         type: DropdownAlertType.Success,
-        title: "Success",
-        message: "Selection saved successfully.",
+        message: "Your selection has been saved successfully.",
       });
     } catch (error) {
-      Toast.show({
-        type: ALERT_TYPE.ERROR,
-        title: "Error saving selection. Please try again.",
+      const alertData = alert({
+        type: DropdownAlertType.Warn,
+        message: "Error saving your selection. Please try again.",
       });
     }
   };
@@ -246,41 +247,43 @@ const CirclesGrid = ({ data, username, code }) => {
   };
 
   return (
-    <>
-    <Modal
-      isVisible={isInfoVisible}
-      onBackdropPress={() => setIsInfoVisible(false)}
-    >
-      <View style={styles.infoScreen}>
-        <Text style={styles.heading}>
-          🌟 How to use the khatam page 🌟
-        </Text>
-        <Text style={styles.infoText}>
-          <Text style={styles.boldText}>1. Tap or Press and Hold:</Text>{" "}
-          Interact with circles by tapping or holding, just like pressing a button or holding a key.
-        </Text>
-        <Text style={styles.infoText}>
-          <Text style={styles.boldText}>2. Switch Circle Colors:</Text>{" "}
-          Tap or hold a circle to change its color. Experiment with colors; we've got your back if something goes wrong!
-        </Text>
-        <Text style={styles.infoText}>
-          <Text style={styles.boldText}>3. Save Your Selection:</Text>{" "}
-          Make changes, tap "Save Selection," and your choices are saved – it's that easy.
-        </Text>
-        <Text style={styles.infoText}>
-          <Text style={styles.boldText}>4. Delete the Room:</Text>{" "}
-          If you created the page, find the delete button. Use it carefully, only if you're sure about deleting everything.
-        </Text>
-        <Text style={styles.infoText}>
-          <Text style={styles.boldText}>5. Share the Code:</Text>{" "}
-          Press the sharing icon to send a special code for others to join in.
-        </Text>
-        <Text style={styles.infoText}>
-          <Text style={styles.boldText}>6. Complete Message:</Text>{" "}
-          Once everyone finishes, a special message signals task completion.
-        </Text>
-      </View>
-    </Modal>
+    <AlertNotificationRoot>
+      <Modal
+        isVisible={isInfoVisible}
+        onBackdropPress={() => setIsInfoVisible(false)}
+      >
+        <View style={styles.infoScreen}>
+          <Text style={styles.heading}>How to use the Khatam page</Text>
+          <Text style={styles.infoText}>
+            <Text style={styles.boldText}>1. Tap or Press and Hold:</Text>{" "}
+            Interact with circles by tapping or holding.
+          </Text>
+          <Text style={styles.infoText}>
+            <Text style={styles.boldText}>2. Change Circle Colors:</Text> Tap or
+            hold a circle to change its color.
+          </Text>
+          <Text style={styles.infoText}>
+            <Text style={styles.boldText}>3. Save Your Selection:</Text> Make
+            changes then tap "Save Selection".
+          </Text>
+          <Text style={styles.infoText}>
+            <Text style={styles.boldText}>4. Delete the Room:</Text> Click on
+            the trash icon to delete your room.
+          </Text>
+          <Text style={styles.infoText}>
+            <Text style={styles.boldText}>5. Share the Code:</Text> Press the
+            share icon to send a special code for others to join the room.
+          </Text>
+          <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => {
+                setIsInfoVisible(false);
+              }}
+            >
+              <Text style={styles.buttonText}>Close</Text>
+            </TouchableOpacity>
+        </View>
+      </Modal>
       <DropdownAlert alert={(func) => (alert = func)} />
       <View style={styles.headingContainer}>
         <View>
@@ -310,12 +313,9 @@ const CirclesGrid = ({ data, username, code }) => {
       {allRead ? (
         <View>
           <Text style={styles.completeMessage}>
-            The Khatam is complete, Jazakallah Khair for participating
+            The Khatam has been completed {"\n"}
+            ٱلْحَمْدُ لِلّٰه {"\n"}  رَبَّنَا تَقَبَّلۡ مِنَّآۖ
           </Text>
-          <Image
-            style={styles.image}
-            source={require("../assets/complete.png")}
-          />
         </View>
       ) : (
         <>
@@ -326,8 +326,9 @@ const CirclesGrid = ({ data, username, code }) => {
               </View>
             ))}
           </View>
-          <Text style={styles.description}>
-            You can quickly tap or press and hold to switch the circle colors.
+          <Text style={styles.text}>
+            Click the <Icon name="info" size={20} style={styles.icon} /> to view
+            detailed instructions on how to use this page
           </Text>
           {hasChanges && (
             <Button
@@ -343,7 +344,7 @@ const CirclesGrid = ({ data, username, code }) => {
           {!hasChanges && <AdditionalCirclesLegend />}
         </>
       )}
-    </>
+    </AlertNotificationRoot>
   );
 };
 
@@ -392,8 +393,8 @@ const styles = StyleSheet.create({
     padding: 2,
   },
   circle: {
-    width: 40,
-    height: 40,
+    width: 35,
+    height: 35,
     borderRadius: 25,
     justifyContent: "center",
     alignItems: "center",
@@ -407,7 +408,7 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   number: {
-    fontSize: 22,
+    fontSize: 18,
   },
   image: {
     width: 300,
@@ -464,6 +465,25 @@ const styles = StyleSheet.create({
   boldText: {
     fontWeight: "bold",
     color: "#f4f4fc",
+  },
+  text: {
+    padding: 10,
+    fontSize: 15,
+    margin: 15,
+    textAlign: "center",
+    color: "#f4f4fc",
+    fontWeight: "bold",
+  },
+  icon: {
+    margin: 10,
+    color: "#8ebbff",
+  },
+  closeButton: {
+    backgroundColor: "#DB504A",
+    borderRadius: 5,
+    padding: 10,
+    marginBottom: 10,
+    alignSelf: "center",
   },
 });
 

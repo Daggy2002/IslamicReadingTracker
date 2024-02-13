@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { StyleSheet, ScrollView, View, RefreshControl } from "react-native";
-import { Provider as PaperProvider, Text } from "react-native-paper";
+import { Provider as PaperProvider, Card, Text } from "react-native-paper";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import Icon from "react-native-vector-icons/FontAwesome";
 import {
   AlertNotificationRoot,
   Toast,
@@ -20,22 +21,23 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Linking } from "react-native";
 import Loader from "giant.panda_react-native-three-dots-loader";
 import DropdownAlert, { DropdownAlertType } from "react-native-dropdownalert";
-import {
-  BannerAd,
-  BannerAdSize,
-  TestIds,
-} from "react-native-google-mobile-ads";
+// import {
+//   BannerAd,
+//   BannerAdSize,
+//   TestIds,
+// } from "react-native-google-mobile-ads";
 
 import CardComponent from "../components/card";
 import Add from "../components/Add";
 import ModalPopup from "../components/MainMenu";
 import db from "../firebase";
-import { AD_MOB_ID } from "@env";
+// import { AD_MOB_ID } from "@env";
+
 
 let alert = (DropdownAlertData) =>
   new Promise() < DropdownAlertData > ((res) => res);
 
-const adUnitId = __DEV__ ? TestIds.ADAPTIVE_BANNER : AD_MOB_ID;
+// const adUnitId = __DEV__ ? TestIds.ADAPTIVE_BANNER : AD_MOB_ID;
 
 const generateRandomCode = () => {
   const characters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -68,7 +70,6 @@ export default function Home() {
       if (titleInput === "") {
         const alertData = await alert({
           type: DropdownAlertType.Warn,
-          title: "Invalid Title",
           message: "Please enter a title",
         });
         return;
@@ -76,11 +77,10 @@ export default function Home() {
     }
 
     //Verify the goal is valid
-    if (type === "Tasbeeh" || type === "QadhaSalaah") {
+    if (type === "Tasbeeh" || type === "QadhaSalaah" || type === "QadhaFast" || type === "Yaseen") {
       if (goal <= 0 || !Number.isInteger(Number(goal))) {
         const alertData = await alert({
           type: DropdownAlertType.Warn,
-          title: "Invalid Number",
           message: "Please enter a positive integer for the goal",
         });
         return;
@@ -152,6 +152,21 @@ export default function Home() {
           type: "QadhaSalaah",
         };
         break;
+      case "QadhaFast":
+        data = {
+          creator: username,
+          data: { current_amount: 0, goal: goal },
+          title: titleInput,
+          type: "QadhaFast",
+        };
+        break;
+      case "Yaseen":
+        data = {
+          creator: username,
+          data: { current_amount: 0, goal: goal },
+          title: titleInput,
+          type: "Yaseen",
+        };
     }
 
     try {
@@ -165,9 +180,9 @@ export default function Home() {
     const newCodes = [...codes, code];
     setCodes(newCodes);
     await AsyncStorage.setItem("codes", JSON.stringify(newCodes));
-    Toast.show({
-      type: ALERT_TYPE.SUCCESS,
-      title: "Code created successfully",
+    const alertData = await alert({
+      type: DropdownAlertType.Success,
+      message: "Room created successfully",
     });
 
     closeModal();
@@ -185,9 +200,9 @@ export default function Home() {
   const addCode = async (codeInput) => {
     // First check if the code is already been added
     if (codes.includes(codeInput)) {
-      Toast.show({
-        type: ALERT_TYPE.WARNING,
-        title: "This code has already been added",
+      const alertData = await alert({
+        type: DropdownAlertType.Warn,
+        message: "This code has already been added",
       });
       return;
     }
@@ -200,10 +215,9 @@ export default function Home() {
     );
     const querySnapshot = await getDocs(codesQuery);
     if (querySnapshot.empty) {
-      Toast.show({
-        type: ALERT_TYPE.WARNING,
-        title: "This code does not exist",
-        textBody: "Please enter a valid code",
+      const alertData = await alert({
+        type: DropdownAlertType.Warn,
+        message: "This code does not exist",
       });
     } else {
       getCodes();
@@ -212,9 +226,9 @@ export default function Home() {
       const newCodes = [...codes, codeInput];
       setCodes(newCodes);
       await AsyncStorage.setItem("codes", JSON.stringify(newCodes));
-      Toast.show({
-        type: ALERT_TYPE.SUCCESS,
-        title: "Code added successfully",
+      const alertData = await alert({
+        type: DropdownAlertType.Success,
+        message: "Code added successfully",
       });
       Toast.hide();
       onRefresh();
@@ -306,7 +320,7 @@ export default function Home() {
     <>
       <GestureHandlerRootView>
         <DropdownAlert alert={(func) => (alert = func)} />
-        <BannerAd
+        {/* <BannerAd
           style={{ margin: 10 }}
           unitId={adUnitId}
           size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
@@ -315,11 +329,25 @@ export default function Home() {
               collapsible: "bottom",
             },
           }}
-        />
+        /> */}
+        <Card style={{ margin: 10, backgroundColor: "#222b3d" }}>
+          <Card.Content>
+            <View>
+              <Text style={styles.heading}>How to use this page</Text>
+              <Text style={styles.text}>
+                Create rooms to read together or individually.{"\n"}
+                Press the <Icon name="plus" size={20} style={styles.icon} />{" "}
+                button to create a new room or to join an existing room. Click the {" "}
+                <Icon name="ellipsis-h" size={20} style={styles.icon} />  to share your code with others or to remove the
+                room from your list.
+              </Text>
+            </View>
+          </Card.Content>
+        </Card>
+        <Text style={styles.text}>Your rooms</Text>
       </GestureHandlerRootView>
       {dataRetrieved ? (
         <PaperProvider>
-          <AlertNotificationRoot theme="dark">
             <ScrollView
               refreshControl={
                 <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
@@ -339,7 +367,6 @@ export default function Home() {
               saveCode={addCode}
               createNewRoom={createNewRoom}
             />
-          </AlertNotificationRoot>
         </PaperProvider>
       ) : (
         <View style={styles.container}>
@@ -366,4 +393,15 @@ const styles = StyleSheet.create({
     color: "#f4f4fc",
     fontWeight: "bold",
   },
+  icon: {
+    margin: 10,
+    color: "#8ebbff",
+  },
+  heading:{
+    fontSize: 20,
+    fontWeight: "bold",
+    textAlign: "center",
+    margin: 5,
+    color: "#f4f4fc"
+  }
 });

@@ -20,6 +20,7 @@
     "giant.panda_react-native-three-dots-loader": "^1.0.1",
     "react": "18.2.0",
     "react-native": "0.73.2",
+    "react-native-admob": "^1.3.2",
     "react-native-alert-notification": "^0.4.0",
     "react-native-bouncy-checkbox": "^3.0.7",
     "react-native-confetti-cannon": "^1.5.2",

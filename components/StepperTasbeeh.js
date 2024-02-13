@@ -8,11 +8,7 @@ import {
   Share,
 } from "react-native";
 import { ProgressBar, IconButton } from "react-native-paper";
-import {
-  Toast,
-  Dialog,
-  ALERT_TYPE,
-} from "react-native-alert-notification";
+import { Toast, Dialog, ALERT_TYPE, AlertNotificationRoot } from "react-native-alert-notification";
 import {
   collection,
   doc,
@@ -20,12 +16,11 @@ import {
   getDoc,
   deleteDoc,
 } from "firebase/firestore/lite";
-import DropdownAlert, {
-  DropdownAlertType,
-} from "react-native-dropdownalert";
+import DropdownAlert, { DropdownAlertType } from "react-native-dropdownalert";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import Modal from "react-native-modal";
+import Icon from "react-native-vector-icons/FontAwesome";
 
 import db from "../firebase";
 
@@ -39,14 +34,14 @@ const NumericStepper = ({ data, code, username }) => {
   const [goalReached, setGoalReached] = useState(false);
   const [isInfoVisible, setIsInfoVisible] = useState(false);
 
-  const step = 10;
-  const largeStep = 100;
+  const step = 5;
+  const largeStep = 50;
 
   const shareData = async () => {
     try {
       await Share.share({
         message:
-          "Join the Khatam/Tasbeeh Reading using this code " +
+          "Join the Tasbeeh Reading using this code " +
           JSON.stringify(code),
       });
     } catch (error) {
@@ -121,15 +116,13 @@ const NumericStepper = ({ data, code, username }) => {
 
       const alertData = await alert({
         type: DropdownAlertType.Success,
-        title: "Success",
-        message: "Selection saved successfully.",
+        message: "Your selection has been saved successfully.",
       });
     } catch (error) {
       console.error("Error saving selection:", error);
-
-      Toast.show({
-        type: ALERT_TYPE.ERROR,
-        title: "Error saving selection. Please try again.",
+      const alertData = alert({
+        type: DropdownAlertType.Warn,
+        message: "Error saving your selection. Please try again.",
       });
     }
   };
@@ -148,45 +141,47 @@ const NumericStepper = ({ data, code, username }) => {
 
   return (
     <>
+    <AlertNotificationRoot >
       <Modal
         isVisible={isInfoVisible}
         onBackdropPress={() => setIsInfoVisible(false)}
       >
         <View style={styles.infoScreen}>
-          <Text style={styles.heading}>📊 Viewing Progress:</Text>
+          <Text style={styles.heading}>How to use the page</Text>
           <Text style={styles.infoText}>
-            - The top section shows the goal and your current progress.
-          </Text>
-          <Text style={styles.infoText}>
-            - If the progress bar is filled, congratulations! You've reached the
-            goal.
+            <Text style={styles.boldText}>1.Viewing Progress:</Text>
+            The top section shows the goal and your current progress. If the
+            progress bar is filled, congratulations! You've reached the goal.
           </Text>
 
-          <Text style={styles.heading}>🔄 Adjusting Count:</Text>
           <Text style={styles.infoText}>
-            - Use the "+" and "-" buttons to increase or decrease the count.
-          </Text>
-          <Text style={styles.infoText}>
-            - For larger changes, try the "++" and "--" buttons.
+            <Text style={styles.boldText}>2.Adjusting Your Count:</Text>
+            Use the "+" and "-" buttons to increase or decrease the count. For
+            larger changes, try the "++" and "--" buttons.
           </Text>
 
-          <Text style={styles.heading}>✔ Confirm Changes:</Text>
           <Text style={styles.infoText}>
-            - If you're satisfied with the count, press "Confirm" below the
-            buttons.
+            <Text style={styles.boldText}>3. Save Your Selection:</Text> Make
+            changes then tap "Save Selection".
           </Text>
 
-          <Text style={styles.heading}>📤 Sharing:</Text>
           <Text style={styles.infoText}>
-            - Use the "Share" button to invite others using the given code.
+            <Text style={styles.boldText}>5. Share the Code:</Text> Press the
+            share icon to send a special code for others to join the room.
           </Text>
 
-          <Text style={styles.heading}>❌ Deleting Room (Creator Only):</Text>
           <Text style={styles.infoText}>
-            - If you're the creator, press "Delete" to remove the room
-            (confirmation required).
+            <Text style={styles.boldText}>4. Delete the Room:</Text> Click on
+            the trash icon to delete your room.
           </Text>
-
+          <TouchableOpacity
+            style={styles.closeButton}
+            onPress={() => {
+              setIsInfoVisible(false);
+            }}
+          >
+            <Text style={styles.buttonText}>Close</Text>
+          </TouchableOpacity>
         </View>
       </Modal>
       <DropdownAlert alert={(func) => (alert = func)} />
@@ -218,12 +213,9 @@ const NumericStepper = ({ data, code, username }) => {
       {goalReached ? (
         <View>
           <Text style={styles.completeMessage}>
-            The Tasbeeh Reading is complete, Jazakallah Khair for participating
+            The Tasbeeh reading has been completed {"\n"}
+            ٱلْحَمْدُ لِلّٰه {"\n"}  رَبَّنَا تَقَبَّلۡ مِنَّآۖ
           </Text>
-          <Image
-            style={styles.image}
-            source={require("../assets/complete.png")}
-          />
         </View>
       ) : (
         <>
@@ -232,7 +224,7 @@ const NumericStepper = ({ data, code, username }) => {
             {value}/{data.data.goal}
           </Text>
           <ProgressBar
-            progress={data.data.current_amount / data.data.goal}
+            progress={value/ data.data.goal}
             color="#8ebbff"
             style={styles.progressBar}
           />
@@ -273,8 +265,13 @@ const NumericStepper = ({ data, code, username }) => {
               </TouchableOpacity>
             </View>
           )}
+          <Text style={styles.text}>
+            Click the <Icon name="info" size={20} style={styles.icon} /> to view
+            detailed instructions on how to use this page
+          </Text>
         </>
       )}
+      </AlertNotificationRoot>
     </>
   );
 };
@@ -406,6 +403,25 @@ const styles = StyleSheet.create({
   boldText: {
     fontWeight: "bold",
     color: "#f4f4fc",
+  },
+  text: {
+    padding: 10,
+    fontSize: 15,
+    margin: 15,
+    textAlign: "center",
+    color: "#f4f4fc",
+    fontWeight: "bold",
+  },
+  icon: {
+    margin: 10,
+    color: "#8ebbff",
+  },
+  closeButton: {
+    backgroundColor: "#DB504A",
+    borderRadius: 5,
+    padding: 10,
+    marginBottom: 10,
+    alignSelf: "center",
   },
 });
 

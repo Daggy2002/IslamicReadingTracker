@@ -1,7 +1,15 @@
 // Give me the basic layout of a component
-import React, { useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Animated,
+  Image,
+} from "react-native";
 import { ProgressBar, IconButton, Checkbox } from "react-native-paper";
+import Icon from "react-native-vector-icons/FontAwesome";
 import {
   collection,
   doc,
@@ -9,9 +17,7 @@ import {
   getDoc,
   deleteDoc,
 } from "firebase/firestore/lite";
-import DropdownAlert, {
-  DropdownAlertType,
-} from "react-native-dropdownalert";
+import DropdownAlert, { DropdownAlertType } from "react-native-dropdownalert";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import {
@@ -32,6 +38,28 @@ const QadhaSalaahComponent = ({ data, code }) => {
   const [showSaveChanges, setShowSaveChanges] = useState(false);
   const [allRead, setAllRead] = useState(false);
   const [isInfoVisible, setIsInfoVisible] = useState(false);
+  const fadeAnim = new Animated.Value(0); // Initialize fade animation value
+  const [goalReached, setGoalReached] = useState(false);
+
+  useEffect(() => {
+    // Use effect to trigger fade in/out animation
+    Animated.timing(fadeAnim, {
+      toValue: 1, // Fade in
+      duration: 1000,
+      useNativeDriver: true,
+    }).start(() => {
+      // After fade in, start fade out
+      Animated.timing(fadeAnim, {
+        toValue: 0, // Fade out
+        duration: 1000,
+        useNativeDriver: true,
+      }).start();
+    });
+  }, [allRead]);
+
+  useEffect(() => {
+    setGoalReached(data.data.current_amount >= data.data.goal);
+  }, [data]);
 
   const deleteRoomConfirmation = () => {
     Dialog.show({
@@ -84,14 +112,13 @@ const QadhaSalaahComponent = ({ data, code }) => {
 
       // Update the data based on your requirements
       const updatedData = data;
-
+      setGoalReached(updatedData.data.current_amount >= updatedData.data.goal);
       // Update the document with the new data
       await updateDoc(codeDocRef, updatedData);
 
       const alertData = await alert({
         type: DropdownAlertType.Success,
-        title: "Success",
-        message: "Selection saved successfully.",
+        message: "Your selection has been saved successfully.",
       });
     } catch (error) {
       console.error("Error saving selection:", error);
@@ -114,29 +141,37 @@ const QadhaSalaahComponent = ({ data, code }) => {
           onBackdropPress={() => setIsInfoVisible(false)}
         >
           <View style={styles.infoScreen}>
-            <Text style={styles.heading}>📌 How to Use:</Text>
+            <Text style={styles.heading}>
+              How to use the Qadha Salaah Tracker
+            </Text>
 
             <Text style={styles.infoText}>
               1. <Text style={styles.boldText}>Checking Salaahs:</Text> Mark the
-              salaahs (prayers) you've read by tapping on them. They will show a
-              checkmark when selected.
+              salaahs you've read by tapping on the checklist icon.
             </Text>
 
             <Text style={styles.infoText}>
               2. <Text style={styles.boldText}>Counting Completed Days:</Text>{" "}
-              When you finish marking all salaahs, it counts as completing one
-              day. Your 'Days Read' count goes up by 1, and the salaahs are
-              reset for the next day.
+              Once you've marked all salaahs as complete, your 'Days Read' count
+              goes up by 1, and the salaahs are reset for the next day.
             </Text>
 
             <Text style={styles.infoText}>
-              3. <Text style={styles.boldText}>Deleting a Room:</Text> If you
-              want to remove the room, press the 'Delete' button. A confirmation
-              will pop up, and if you're sure, press 'Delete' again.
+              <Text style={styles.boldText}>4. Delete the Room:</Text> Click on
+              the trash icon to delete your room.
             </Text>
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => {
+                setIsInfoVisible(false);
+              }}
+            >
+              <Text style={styles.buttonText}>Close</Text>
+            </TouchableOpacity>
           </View>
         </Modal>
         <DropdownAlert alert={(func) => (alert = func)} />
+
         <View style={styles.headingContainer}>
           <View>
             <Text style={styles.titleText}>Qadha Salaah Tracker</Text>
@@ -155,39 +190,57 @@ const QadhaSalaahComponent = ({ data, code }) => {
             />
           </View>
         </View>
-        <Text style={styles.subheading}>
-          Qadha Salaahs Read: {data.data.current_amount} / {data.data.goal}
-        </Text>
-        <ProgressBar
-          progress={data.data.current_amount / data.data.goal}
-          color={"#8EBBFF"}
-          style={styles.progressBar}
-        />
 
-        {salaahNames.map((salaah, index) => (
-          <View key={index} style={styles.salaahContainer}>
-            <Checkbox
-              status={isRead[index] ? "checked" : "unchecked"}
-              onPress={() => handleCheckBoxChange(index)}
-              style={styles.checkBox}
-              color="#8EBBFF"
-            />
-            <Text style={styles.salaahName}>{salaah}</Text>
+        {goalReached ? (
+          <View>
+            <Text style={styles.completeMessage}>
+              You have read all your Qadha Salaahs! {"\n"}
+              ٱلْحَمْدُ لِلّٰه {"\n"} رَبَّنَا تَقَبَّلۡ مِنَّآۖ
+            </Text>
           </View>
-        ))}
-        {allRead && (
-          <Text style={styles.completion}>
-            You've read one day of Qadha Salaah
-          </Text>
-        )}
+        ) : (
+          <>
+            <Text style={styles.subheading}>
+              Qadha Salaahs Read: {data.data.current_amount} / {data.data.goal}
+            </Text>
+            <ProgressBar
+              progress={data.data.current_amount / data.data.goal}
+              color={"#8EBBFF"}
+              style={styles.progressBar}
+            />
 
-        {showSaveChanges && (
-          <TouchableOpacity
-            onPress={saveChanges}
-            style={styles.saveChangesButton}
-          >
-            <Text style={styles.buttonText}>Save Changes</Text>
-          </TouchableOpacity>
+            {salaahNames.map((salaah, index) => (
+              <View key={index} style={styles.salaahContainer}>
+                <Checkbox
+                  status={isRead[index] ? "checked" : "unchecked"}
+                  onPress={() => handleCheckBoxChange(index)}
+                  style={styles.checkBox}
+                  color="#8EBBFF"
+                />
+                <Text style={styles.salaahName}>{salaah}</Text>
+              </View>
+            ))}
+            {allRead && (
+              <Animated.Text
+                style={{ ...styles.completion, opacity: fadeAnim }}
+              >
+                You've read one day of Qadha Salaah
+              </Animated.Text>
+            )}
+
+            {showSaveChanges && (
+              <TouchableOpacity
+                onPress={saveChanges}
+                style={styles.saveChangesButton}
+              >
+                <Text style={styles.buttonText}>Save Changes</Text>
+              </TouchableOpacity>
+            )}
+            <Text style={styles.text}>
+              Click the <Icon name="info" size={20} style={styles.icon} /> to
+              view detailed instructions on how to use this page
+            </Text>
+          </>
         )}
       </AlertNotificationRoot>
     </>
@@ -273,6 +326,38 @@ const styles = StyleSheet.create({
   boldText: {
     fontWeight: "bold",
     color: "#f4f4fc",
+  },
+  text: {
+    padding: 10,
+    fontSize: 15,
+    margin: 15,
+    textAlign: "center",
+    color: "#f4f4fc",
+    fontWeight: "bold",
+  },
+  icon: {
+    margin: 10,
+    color: "#8ebbff",
+  },
+  closeButton: {
+    backgroundColor: "#DB504A",
+    borderRadius: 5,
+    padding: 10,
+    marginBottom: 10,
+    alignSelf: "center",
+  },
+  closeButtonText: {
+    color: "#F4F4FC",
+    fontSize: 16,
+  },
+  image: {
+    alignSelf: "center",
+  },
+  completeMessage: {
+    fontSize: 20,
+    textAlign: "center",
+    margin: 20,
+    color: "#9FCC2E",
   },
 });
 

@@ -8,12 +8,13 @@ export default function Layout(){
             statusBarHidden: true,
             statusBarTranslucent: true,
         }}>
-            <Stack.Screen name="Home" options={{headerShown: false}}/>
             <Stack.Screen name="Khatam" options={{headerShown: false}}/>
             <Stack.Screen name="Tasbeeh" options={{headerShown: false}}/>
             <Stack.Screen name="CompleteOrMissing" options={{headerShown: false}}/>
             <Stack.Screen name="Login" options={{headerShown: false}}/>
             <Stack.Screen name="QadhaSalaah" options={{headerShown: false}}/>
+            <Stack.Screen name="QadhaFast" options={{headerShown: false}}/>
+            <Stack.Screen name="Yaseen" options={{headerShown: false}}/>
 
             
         </Stack>

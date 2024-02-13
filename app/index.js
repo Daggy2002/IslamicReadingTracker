@@ -11,7 +11,7 @@ export default function Page() {
         const value = await AsyncStorage.getItem('username');
 
         if (value != null) {
-          router.replace('/Home');
+          router.replace('/Khatam');
         } else {
           router.replace('/Login');
         }

@@ -63,7 +63,7 @@ export default function Khatam() {
   };
 
   return (
-    <AlertNotificationRoot>
+    <>
       {isDataRetrieved ? (
         <ScrollView
           refreshControl={
@@ -77,7 +77,7 @@ export default function Khatam() {
           <Loader />
         </View>
       )}
-    </AlertNotificationRoot>
+    </>
   );
 }
 
