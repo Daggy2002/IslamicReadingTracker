@@ -18,7 +18,6 @@ import {
   where,
 } from "firebase/firestore/lite";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { Linking } from "react-native";
 import Loader from "giant.panda_react-native-three-dots-loader";
 import DropdownAlert, { DropdownAlertType } from "react-native-dropdownalert";
 // import {
@@ -32,7 +31,6 @@ import Add from "../components/Add";
 import ModalPopup from "../components/MainMenu";
 import db from "../firebase";
 // import { AD_MOB_ID } from "@env";
-
 
 let alert = (DropdownAlertData) =>
   new Promise() < DropdownAlertData > ((res) => res);
@@ -77,7 +75,12 @@ export default function Home() {
     }
 
     //Verify the goal is valid
-    if (type === "Tasbeeh" || type === "QadhaSalaah" || type === "QadhaFast" || type === "Yaseen") {
+    if (
+      type === "Tasbeeh" ||
+      type === "QadhaSalaah" ||
+      type === "QadhaFast" ||
+      type === "Yaseen"
+    ) {
       if (goal <= 0 || !Number.isInteger(Number(goal))) {
         const alertData = await alert({
           type: DropdownAlertType.Warn,
@@ -87,6 +90,8 @@ export default function Home() {
       }
     }
 
+    closeModal();
+    setRefreshing(true);
     const code = generateRandomCode();
 
     const username = await AsyncStorage.getItem("username");
@@ -182,19 +187,15 @@ export default function Home() {
     await AsyncStorage.setItem("codes", JSON.stringify(newCodes));
     const alertData = await alert({
       type: DropdownAlertType.Success,
-      message: "Room created successfully",
+      message: "Room created successfully.",
     });
 
-    closeModal();
     onRefresh();
 
-    //Give it a 2 second delay
-    setTimeout(() => {
-      router.push({
-        pathname: "/" + type,
-        params: { code: code },
-      });
-    }, 2000);
+    router.push({
+      pathname: "/" + type,
+      params: { code: code },
+    });
   };
 
   const addCode = async (codeInput) => {
@@ -336,10 +337,15 @@ export default function Home() {
               <Text style={styles.heading}>How to use this page</Text>
               <Text style={styles.text}>
                 Create rooms to read together or individually.{"\n"}
-                Press the <Icon name="plus" size={20} style={styles.icon} />{" "}
-                button to create a new room or to join an existing room. Click the {" "}
-                <Icon name="ellipsis-h" size={20} style={styles.icon} />  to share your code with others or to remove the
-                room from your list.
+                Press the <Icon
+                  name="plus"
+                  size={20}
+                  style={styles.icon}
+                />{" "}
+                button to create a new room or to join an existing room. Click
+                the <Icon name="ellipsis-h" size={20} style={styles.icon} /> to
+                share your code with others or to remove the room from your
+                list.
               </Text>
             </View>
           </Card.Content>
@@ -348,25 +354,25 @@ export default function Home() {
       </GestureHandlerRootView>
       {dataRetrieved ? (
         <PaperProvider>
-            <ScrollView
-              refreshControl={
-                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-              }
-            >
-              <CardComponent
-                onClick={onCardPress}
-                Title={"Quraan Khatam"}
-                pressDelete={pressDelete}
-                cardData={cardData}
-                codes={codes}
-              />
-            </ScrollView>
-            <ModalPopup
-              visible={modalToggle}
-              onClose={closeModal}
-              saveCode={addCode}
-              createNewRoom={createNewRoom}
+          <ScrollView
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            }
+          >
+            <CardComponent
+              onClick={onCardPress}
+              Title={"Quraan Khatam"}
+              pressDelete={pressDelete}
+              cardData={cardData}
+              codes={codes}
             />
+          </ScrollView>
+          <ModalPopup
+            visible={modalToggle}
+            onClose={closeModal}
+            saveCode={addCode}
+            createNewRoom={createNewRoom}
+          />
         </PaperProvider>
       ) : (
         <View style={styles.container}>
@@ -397,11 +403,11 @@ const styles = StyleSheet.create({
     margin: 10,
     color: "#8ebbff",
   },
-  heading:{
+  heading: {
     fontSize: 20,
     fontWeight: "bold",
     textAlign: "center",
     margin: 5,
-    color: "#f4f4fc"
-  }
+    color: "#f4f4fc",
+  },
 });

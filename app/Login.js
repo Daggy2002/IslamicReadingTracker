@@ -7,8 +7,7 @@ import { router } from 'expo-router';
 import DropdownAlert, { DropdownAlertType } from "react-native-dropdownalert";
 
 let alert = (DropdownAlertData) =>
-  new Promise() < DropdownAlertData > ((res) => res);
-
+  new Promise((res) => res(DropdownAlertData));
 
 export default function Login() {
   const [username, setUsername] = useState('');
@@ -33,12 +32,10 @@ export default function Login() {
         type: DropdownAlertType.Success,
         message: "Username saved successfully!",
       });
-  
-      // Wait for the toast to show
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Adjust the timeout as needed
-  
-      // Redirect after both AsyncStorage save and toast display
-      router.push('/Home');
+      // Navigate to the home screen after 1 second
+      setTimeout(() => {
+        router.navigate('Home');
+      }, 1000);
     } catch (error) {
       console.error('Error saving data:', error);
     }

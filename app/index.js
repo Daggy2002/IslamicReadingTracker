@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
-import 'expo-dev-client';
 
 export default function Page() {
 
@@ -11,7 +10,7 @@ export default function Page() {
         const value = await AsyncStorage.getItem('username');
 
         if (value != null) {
-          router.replace('/Khatam');
+          router.replace('/Home');
         } else {
           router.replace('/Login');
         }

@@ -8,6 +8,7 @@ export default function Layout(){
             statusBarHidden: true,
             statusBarTranslucent: true,
         }}>
+            <Stack.Screen name="Home" options={{headerShown: false}}/>
             <Stack.Screen name="Khatam" options={{headerShown: false}}/>
             <Stack.Screen name="Tasbeeh" options={{headerShown: false}}/>
             <Stack.Screen name="CompleteOrMissing" options={{headerShown: false}}/>
