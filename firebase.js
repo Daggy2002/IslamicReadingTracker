@@ -1,16 +1,15 @@
 import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, getDocs } from 'firebase/firestore/lite';
-import { get } from 'react-native/Libraries/TurboModule/TurboModuleRegistry';
-import { API_KEY, AUTH_DOMAIN, PROJECT_ID, STORAGE_BUCKET, MESSAGING_SENDER_ID, APP_ID, MEASUREMENT_ID } from '@env';
+
 
 const firebaseConfig = {
-  apiKey: API_KEY,
-  authDomain: AUTH_DOMAIN,
-  projectId: PROJECT_ID,
-  storageBucket: STORAGE_BUCKET,
-  messagingSenderId: MESSAGING_SENDER_ID,
-  appId: APP_ID,
-  measurementId: MEASUREMENT_ID
+  apiKey: process.env.APP_ENV_API_KEY,
+  authDomain: process.env.APP_ENV_AUTH_DOMAIN,
+  projectId: process.env.APP_ENV_PROJECT_ID,
+  storageBucket: process.env.APP_ENV_STORAGE_BUCKET,
+  messagingSenderId: process.env.APP_ENV_MESSAGING_SENDER_ID,
+  appId: process.env.APP_ENV_APP_ID,
+  measurementId: process.env.APP_ENV_MEASUREMENT_ID
 };
 
 const app = initializeApp(firebaseConfig);
